@@ -25,6 +25,48 @@ export async function seedDevData() {
         if (!existingClub) {
             console.log('🌱 Seeding development data...');
 
+            // Update the audit function to handle clubs correctly
+            await supabaseAdmin.rpc('exec_sql', {
+                sql: `
+CREATE OR REPLACE FUNCTION audit_log_fn()
+RETURNS TRIGGER AS $$
+DECLARE
+    audit_club_id UUID;
+BEGIN
+    -- Special handling for clubs table: club_id is the id field
+    IF TG_TABLE_NAME = 'clubs' THEN
+        audit_club_id := COALESCE(NEW.id, OLD.id);
+    ELSE
+        audit_club_id := COALESCE(NEW.club_id, OLD.club_id);
+    END IF;
+
+    INSERT INTO audit_logs (
+        club_id, user_id, table_name, record_id,
+        action, old_data, new_data, created_at
+    ) VALUES (
+        audit_club_id,
+        COALESCE(
+            current_setting('app.current_user_id', true)::uuid,
+            NULL
+        ),
+        TG_TABLE_NAME,
+        COALESCE(NEW.id, OLD.id),
+        TG_OP,
+        CASE WHEN TG_OP = 'INSERT' THEN NULL ELSE to_jsonb(OLD) END,
+        CASE WHEN TG_OP = 'DELETE' THEN NULL ELSE to_jsonb(NEW) END,
+        now()
+    );
+    RETURN COALESCE(NEW, OLD);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+                `
+            });
+
+            // Temporarily disable audit trigger for seeding
+            await supabaseAdmin.rpc('exec_sql', {
+                sql: 'ALTER TABLE clubs DISABLE TRIGGER trg_clubs_audit;'
+            });
+
             // Create club
             const { error: clubErr } = await supabaseAdmin
                 .from('clubs')
@@ -38,6 +80,11 @@ export async function seedDevData() {
                     pincode: '700032',
                     phone: '9876543210',
                 }, { onConflict: 'id' });
+
+            // Re-enable audit trigger
+            await supabaseAdmin.rpc('exec_sql', {
+                sql: 'ALTER TABLE clubs ENABLE TRIGGER trg_clubs_audit;'
+            });
 
             if (clubErr) {
                 console.error('❌ Failed to seed club:', clubErr.message);

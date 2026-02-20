@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { User, Shield, Building, Save, AlertCircle } from 'lucide-react';
+import { User, Shield, Building, Save, AlertCircle, Bell, Palette } from 'lucide-react';
 import { useToast } from '../components/ui/Toast';
 import Modal from '../components/Modal';
 
@@ -15,6 +15,19 @@ export default function Settings() {
         primaryColor: '#EA580C',
         accentColor: '#F59E0B',
     });
+    const [preferences, setPreferences] = useState({
+        theme: 'light',
+        language: 'en',
+        timezone: 'Asia/Kolkata',
+        dateFormat: 'DD/MM/YYYY',
+    });
+    const [notifications, setNotifications] = useState({
+        emailDonations: true,
+        emailReports: false,
+        emailAlerts: true,
+        pushDonations: true,
+        pushAlerts: true,
+    });
 
     const handleSaveProfile = (e) => {
         e.preventDefault();
@@ -24,6 +37,16 @@ export default function Settings() {
     const handleUpdateClub = (e) => {
         e.preventDefault();
         toast.success('Club settings updated!');
+    };
+
+    const handleSavePreferences = (e) => {
+        e.preventDefault();
+        toast.success('Preferences saved successfully!');
+    };
+
+    const handleSaveNotifications = (e) => {
+        e.preventDefault();
+        toast.success('Notification settings updated!');
     };
 
     const handleResetPassword = () => {
@@ -69,7 +92,7 @@ export default function Settings() {
                 <div>
                     <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-primary)' }}>Settings</h2>
                     <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                        Manage your profile and club configurations.
+                        Manage your profile, club configurations, preferences, and notifications.
                     </p>
                 </div>
             </div>
@@ -90,6 +113,12 @@ export default function Settings() {
                         </button>
                         <button onClick={() => setActiveTab('club')} style={tabButtonStyle(activeTab === 'club')}>
                             <Building size={18} /> Club Details
+                        </button>
+                        <button onClick={() => setActiveTab('preferences')} style={tabButtonStyle(activeTab === 'preferences')}>
+                            <Palette size={18} /> Preferences
+                        </button>
+                        <button onClick={() => setActiveTab('notifications')} style={tabButtonStyle(activeTab === 'notifications')}>
+                            <Bell size={18} /> Notifications
                         </button>
                         <button onClick={() => setActiveTab('security')} style={tabButtonStyle(activeTab === 'security')}>
                             <Shield size={18} /> Security
@@ -197,6 +226,104 @@ export default function Settings() {
                                 <button className="btn btn-danger" onClick={() => setShowResetConfirm(true)}>
                                     Reset Password
                                 </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'preferences' && (
+                        <div className="card">
+                            <div className="card-header"><h3>Application Preferences</h3></div>
+                            <div className="card-body">
+                                <form onSubmit={handleSavePreferences} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-6)' }}>
+                                        <div className="form-group">
+                                            <label className="form-label">Theme</label>
+                                            <select className="form-input" value={preferences.theme}
+                                                onChange={(e) => setPreferences({ ...preferences, theme: e.target.value })}>
+                                                <option value="light">Light</option>
+                                                <option value="dark">Dark</option>
+                                                <option value="auto">Auto (System)</option>
+                                            </select>
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">Language</label>
+                                            <select className="form-input" value={preferences.language}
+                                                onChange={(e) => setPreferences({ ...preferences, language: e.target.value })}>
+                                                <option value="en">English</option>
+                                                <option value="hi">Hindi</option>
+                                                <option value="bn">Bengali</option>
+                                            </select>
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">Timezone</label>
+                                            <select className="form-input" value={preferences.timezone}
+                                                onChange={(e) => setPreferences({ ...preferences, timezone: e.target.value })}>
+                                                <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
+                                                <option value="UTC">UTC</option>
+                                            </select>
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">Date Format</label>
+                                            <select className="form-input" value={preferences.dateFormat}
+                                                onChange={(e) => setPreferences({ ...preferences, dateFormat: e.target.value })}>
+                                                <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                                                <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                                                <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div style={{ paddingTop: 'var(--space-4)' }}>
+                                        <button type="submit" className="btn btn-primary">
+                                            <Save size={16} /> Save Preferences
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'notifications' && (
+                        <div className="card">
+                            <div className="card-header"><h3>Notification Settings</h3></div>
+                            <div className="card-body">
+                                <form onSubmit={handleSaveNotifications} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+                                        <h4 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>Email Notifications</h4>
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', cursor: 'pointer' }}>
+                                            <input type="checkbox" checked={notifications.emailDonations}
+                                                onChange={(e) => setNotifications({ ...notifications, emailDonations: e.target.checked })} />
+                                            <span>New donations and updates</span>
+                                        </label>
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', cursor: 'pointer' }}>
+                                            <input type="checkbox" checked={notifications.emailReports}
+                                                onChange={(e) => setNotifications({ ...notifications, emailReports: e.target.checked })} />
+                                            <span>Weekly/monthly reports</span>
+                                        </label>
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', cursor: 'pointer' }}>
+                                            <input type="checkbox" checked={notifications.emailAlerts}
+                                                onChange={(e) => setNotifications({ ...notifications, emailAlerts: e.target.checked })} />
+                                            <span>Security alerts and fraud flags</span>
+                                        </label>
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+                                        <h4 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>Push Notifications</h4>
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', cursor: 'pointer' }}>
+                                            <input type="checkbox" checked={notifications.pushDonations}
+                                                onChange={(e) => setNotifications({ ...notifications, pushDonations: e.target.checked })} />
+                                            <span>New donations</span>
+                                        </label>
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', cursor: 'pointer' }}>
+                                            <input type="checkbox" checked={notifications.pushAlerts}
+                                                onChange={(e) => setNotifications({ ...notifications, pushAlerts: e.target.checked })} />
+                                            <span>Important alerts</span>
+                                        </label>
+                                    </div>
+                                    <div style={{ paddingTop: 'var(--space-4)' }}>
+                                        <button type="submit" className="btn btn-primary">
+                                            <Save size={16} /> Save Notifications
+                                        </button>
+                                    </div>
+                                </form>
                             </div>
                         </div>
                     )}
