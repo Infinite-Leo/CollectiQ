@@ -220,4 +220,4 @@ Academic License
 
 ---
 
-**Built with ❤️ to demonstrate practical DBMS concepts and secure full-stack architecture.
+Built with ❤️ to demonstrate practical DBMS concepts and secure full-stack architecture.
