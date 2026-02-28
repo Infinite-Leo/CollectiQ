@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Bell, Search, ChevronDown, User, Settings, LogOut, ShieldAlert, AlertTriangle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import ThemeToggle from './ThemeToggle';
 
 const notifications = [
     { id: 1, title: 'New Fraud Flag', desc: 'GPS anomaly detected for Ravi Kumar', time: '2 min ago', type: 'warning' },
@@ -41,7 +40,7 @@ export default function Header() {
                 <h1>Durga Nagar Club</h1>
                 <div className="event-badge">
                     <span className="event-badge-dot" />
-                    Durga Puja 2026 — Active
+                    Durga Puja 2024 — Active
                 </div>
             </div>
 
@@ -79,8 +78,6 @@ export default function Header() {
                     </div>
                 </div>
 
-                <ThemeToggle />
-
                 {/* Notifications */}
                 <div style={{ position: 'relative' }} ref={notifRef}>
                     <button
@@ -94,10 +91,10 @@ export default function Header() {
                                 position: 'absolute',
                                 top: '5px',
                                 right: '5px',
-                                width: '8px',
-                                height: '8px',
+                                width: '7px',
+                                height: '7px',
                                 borderRadius: '50%',
-                                background: 'var(--color-error)',
+                                background: '#C97B2A',
                                 border: '2px solid var(--bg-page)',
                             }}
                         />
@@ -117,10 +114,10 @@ export default function Header() {
                                         <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
                                             <div style={{ marginTop: '3px' }}>
                                                 {n.type === 'warning'
-                                                    ? <AlertTriangle size={14} color="var(--color-warning)" />
+                                                    ? <AlertTriangle size={14} color="#D4AF37" />
                                                     : n.type === 'success'
-                                                        ? <ShieldAlert size={14} color="var(--brand-green)" />
-                                                        : <Bell size={14} color="var(--color-info)" />
+                                                        ? <ShieldAlert size={14} color="#1E5C3A" />
+                                                        : <Bell size={14} color="#4A6FA5" />
                                                 }
                                             </div>
                                             <div style={{ flex: 1 }}>
@@ -136,7 +133,7 @@ export default function Header() {
                             <div style={{ padding: 'var(--space-3) var(--space-4)', borderTop: '1px solid var(--border-light)', textAlign: 'center' }}>
                                 <Link
                                     to="/audit"
-                                    style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--brand-saffron)' }}
+                                    style={{ fontSize: '0.75rem', fontWeight: 600, color: '#C97B2A' }}
                                     onClick={() => setShowNotifications(false)}
                                 >
                                     View all activity →
@@ -158,26 +155,26 @@ export default function Header() {
                                 width: '28px',
                                 height: '28px',
                                 borderRadius: '50%',
-                                background: 'linear-gradient(135deg, var(--brand-saffron), var(--accent-gold))',
+                                background: 'linear-gradient(135deg, #C97B2A, #D4AF37)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 color: 'white',
                                 fontWeight: 700,
-                                fontSize: '0.6875rem',
-                                boxShadow: '0 2px 6px rgba(232, 101, 32, 0.25)',
+                                fontSize: '0.875rem',
+                                boxShadow: '0 2px 6px rgba(201, 123, 42, 0.25)',
                             }}
                         >
-                            AD
+                            👨🏽‍💼
                         </div>
-                        <ChevronDown size={14} style={{ transition: 'transform 0.2s', transform: showUserMenu ? 'rotate(180deg)' : 'rotate(0)' }} />
+                        <ChevronDown size={14} style={{ transition: 'transform 0.2s', transform: showUserMenu ? 'rotate(180deg)' : 'rotate(0)', color: 'var(--text-muted)' }} />
                     </button>
 
                     {showUserMenu && (
                         <div className="dropdown-panel" style={{ width: '220px' }}>
                             <div style={{ padding: 'var(--space-3) var(--space-4)', borderBottom: '1px solid var(--border-light)' }}>
-                                <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>Arjun Das</div>
-                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>President</div>
+                                <div style={{ fontWeight: 600, fontSize: '0.875rem', fontFamily: 'var(--font-heading)' }}>Arjun Das</div>
+                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Administrator</div>
                             </div>
                             <div className="dropdown-panel-body">
                                 <Link to="/settings" className="dropdown-item" onClick={() => setShowUserMenu(false)}>
@@ -189,7 +186,7 @@ export default function Header() {
                                 <div className="dropdown-divider" />
                                 <button
                                     className="dropdown-item"
-                                    style={{ width: '100%', border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-error)' }}
+                                    style={{ width: '100%', border: 'none', background: 'none', cursor: 'pointer', color: '#8B1A1A' }}
                                     onClick={() => { setShowUserMenu(false); }}
                                 >
                                     <LogOut size={16} /> Sign Out

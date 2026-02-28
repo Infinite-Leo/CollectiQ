@@ -77,11 +77,11 @@ export default function FraudFlags() {
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                 <div>
-                    <h2 style={{ fontSize: '1.375rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <ShieldAlert size={24} color="var(--color-error)" />
+                    <h2 style={{ fontFamily: 'Playfair Display', fontSize: '1.375rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', color: '#2C1A0E' }}>
+                        <ShieldAlert size={24} color="#8B1A1A" />
                         Fraud Flags
                     </h2>
-                    <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                    <p style={{ fontFamily: 'Sora', fontSize: '0.875rem', color: '#7A5A3A', marginTop: '4px' }}>
                         {openCount} open flag{openCount !== 1 ? 's' : ''} requiring review
                     </p>
                 </div>

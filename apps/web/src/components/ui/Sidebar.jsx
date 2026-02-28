@@ -1,7 +1,7 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom';
 import {
     LayoutDashboard, IndianRupee, MapPin, Users,
-    Clock, ShieldAlert, BarChart3, Settings
+    Clock, ShieldAlert, BarChart3, Settings, Plus, LogOut
 } from 'lucide-react';
 
 const navLinks = [
@@ -32,11 +32,20 @@ export default function Sidebar() {
         <aside className="sidebar">
             {/* Brand */}
             <div className="sidebar-brand">
-                <div className="sidebar-brand-icon">C</div>
+                <div className="sidebar-brand-icon">🪔</div>
                 <div className="sidebar-brand-text">
                     <h2>CollectiQ</h2>
-                    <span>Collection Manager</span>
+                    <span>Durga Puja 2024</span>
                 </div>
+            </div>
+
+            {/* New Donation CTA */}
+            <div className="sidebar-cta">
+                <Link to="/donations/new" style={{ textDecoration: 'none' }}>
+                    <button>
+                        <Plus size={17} /> New Donation
+                    </button>
+                </Link>
             </div>
 
             {/* Navigation */}
@@ -54,13 +63,13 @@ export default function Sidebar() {
                                         `sidebar-link ${isActive ? 'active' : ''}`
                                     }
                                 >
-                                    <Icon size={18} />
+                                    <Icon size={17} />
                                     <span style={{ flex: 1 }}>{link.label}</span>
                                     {link.badge && (
                                         <span style={{
-                                            background: 'var(--color-error)',
+                                            background: '#8B1A1A',
                                             color: 'white',
-                                            fontSize: '0.625rem',
+                                            fontSize: '0.5625rem',
                                             fontWeight: 700,
                                             padding: '1px 6px',
                                             borderRadius: 'var(--radius-full)',
@@ -79,11 +88,12 @@ export default function Sidebar() {
             {/* Footer */}
             <div className="sidebar-footer">
                 <div className="sidebar-user">
-                    <div className="sidebar-user-avatar">AD</div>
+                    <div className="sidebar-user-avatar">👨🏽‍💼</div>
                     <div className="sidebar-user-info">
                         <h4>Arjun Das</h4>
-                        <span>President</span>
+                        <span>Administrator</span>
                     </div>
+                    <LogOut size={15} style={{ color: 'rgba(212,175,55,0.3)', cursor: 'pointer', marginLeft: 'auto' }} />
                 </div>
             </div>
         </aside>

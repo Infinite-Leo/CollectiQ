@@ -90,8 +90,8 @@ export default function Settings() {
 
             <div className="card-header" style={{ border: 'none', padding: '0 0 var(--space-6) 0', background: 'transparent' }}>
                 <div>
-                    <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-primary)' }}>Settings</h2>
-                    <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                    <h2 style={{ fontFamily: 'Playfair Display', fontSize: '1.25rem', fontWeight: 700, color: '#2C1A0E' }}>Settings</h2>
+                    <p style={{ fontFamily: 'Sora', fontSize: '0.875rem', color: '#7A5A3A', marginTop: '4px' }}>
                         Manage your profile, club configurations, preferences, and notifications.
                     </p>
                 </div>

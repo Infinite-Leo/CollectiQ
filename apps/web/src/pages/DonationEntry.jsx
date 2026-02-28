@@ -1,7 +1,22 @@
 import { useState } from 'react';
-import { ArrowLeft, MapPin, User, Phone, Receipt, CheckCircle, Loader2 } from 'lucide-react'; // Removing IndianRupee as it is unused
+import { ArrowLeft, MapPin, User, Phone, Receipt, CheckCircle, Loader2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAppData } from '../context/AppDataContext';
+
+const C = {
+    saffron: '#C97B2A',
+    saffronLight: '#E8963A',
+    gold: '#D4AF37',
+    warmText: '#2C1A0E',
+    mutedText: '#7A5A3A',
+    forest: '#1E5C3A',
+    forestLight: '#2D8A58',
+    crimson: '#8B1A1A',
+    cardBg: '#FFFBF3',
+    border: 'rgba(201,123,42,0.15)',
+};
+
+const fmt = (n) => '₹' + Number(n).toLocaleString('en-IN');
 
 export default function DonationEntry() {
     const navigate = useNavigate();
@@ -10,14 +25,15 @@ export default function DonationEntry() {
     const [form, setForm] = useState({
         donor_name: '',
         phone: '',
-        amount: '',
+        amount: '500',
         payment_mode: 'cash',
         payment_status: 'paid',
         notes: '',
     });
 
-    const [status, setStatus] = useState('idle'); // idle, submitting, success
+    const [status, setStatus] = useState('idle');
     const [receipt, setReceipt] = useState(null);
+    const presets = [500, 1000, 1500, 2500, 5000, 11000];
 
     function handleChange(e) {
         const { name, value } = e.target;
@@ -29,24 +45,15 @@ export default function DonationEntry() {
         setStatus('submitting');
 
         try {
-            // Simulate network delay
             await new Promise(resolve => setTimeout(resolve, 800));
 
-            // 1. Add donor implicitly if needed (simplified for quick entry)
-            // In a real app we might check if phone exists, but here we just create a donor entry
-            // or link to an existing one if we implemented search here.
-            // For now, we'll just handle the donation.
-
-            // 2. Add donation
             const result = addDonation({
                 donor: form.donor_name,
                 amount: form.amount,
                 mode: form.payment_mode,
                 status: form.payment_status,
-                // We could add phone to donor here if we wanted to normalize
             });
 
-            // If phone is provided, ensure we have a donor record updated/created
             if (form.donor_name) {
                 addDonor({
                     full_name: form.donor_name,
@@ -56,9 +63,6 @@ export default function DonationEntry() {
 
             setReceipt(result.receipt);
             setStatus('success');
-
-            // Reset form after delay or leave it success? 
-            // Usually data entry needs to be quick, so "New Entry" button is better.
         } catch (error) {
             console.error(error);
             setStatus('idle');
@@ -66,46 +70,53 @@ export default function DonationEntry() {
     }
 
     const resetForm = () => {
-        setForm({ donor_name: '', phone: '', amount: '', payment_mode: 'cash', payment_status: 'paid', notes: '' });
+        setForm({ donor_name: '', phone: '', amount: '500', payment_mode: 'cash', payment_status: 'paid', notes: '' });
         setStatus('idle');
         setReceipt(null);
     };
 
+    // Success state
+    if (status === 'success') {
+        return (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: 16 }}>
+                <div style={{ fontSize: 72, marginBottom: 8 }}>🎊</div>
+                <h2 style={{ fontFamily: 'Playfair Display', fontSize: 28, color: C.warmText, margin: 0 }}>Donation Recorded!</h2>
+                <p style={{ fontFamily: 'Sora', fontSize: 14, color: C.mutedText, margin: 0 }}>
+                    {form.donor_name || 'Donor'} · {fmt(parseInt(form.amount) || 0)} · {form.payment_mode === 'cash' ? 'Cash' : 'Online'}
+                </p>
+                <p style={{ fontFamily: 'Sora', fontSize: 13, color: C.mutedText, margin: '0 0 8px' }}>
+                    Receipt: <strong>{receipt}</strong> · 📱 SMS receipt will be sent
+                </p>
+                <div style={{ display: 'flex', gap: 12 }}>
+                    <button onClick={resetForm} className="btn btn-primary" style={{ fontSize: '0.875rem' }}>
+                        + Record Another Donation
+                    </button>
+                    <Link to="/donations" className="btn btn-secondary" style={{ fontSize: '0.875rem', textDecoration: 'none' }}>
+                        View All Donations
+                    </Link>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <>
             {/* Back Link */}
-            <Link to="/donations" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginBottom: '24px', fontSize: '0.875rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>
+            <Link to="/donations" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginBottom: '24px', fontSize: '0.875rem', color: C.mutedText, textDecoration: 'none' }}>
                 <ArrowLeft size={16} />
                 Back to Donations
             </Link>
 
             <div style={{ maxWidth: '640px' }}>
-                <h2 style={{ fontSize: '1.375rem', fontWeight: 700, marginBottom: '4px' }}>
-                    Record Donation
+                <h2 style={{ fontFamily: 'Playfair Display', fontSize: '1.375rem', fontWeight: 700, marginBottom: '4px', color: C.warmText }}>
+                    Enter Donation Details
                 </h2>
-                <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '24px' }}>
-                    Enter donation details. The receipt will be generated automatically.
+                <p style={{ fontFamily: 'Sora', fontSize: '0.875rem', color: C.mutedText, marginBottom: '26px' }}>
+                    Record a new donation from door-to-door collection
                 </p>
 
-                {/* Success Message */}
-                {status === 'success' && (
-                    <div className="success-banner">
-                        <div className="icon-wrapper">
-                            <CheckCircle size={22} color="var(--brand-green)" />
-                        </div>
-                        <div style={{ flex: 1 }}>
-                            <div style={{ fontWeight: 600, color: 'var(--brand-green-dark)' }}>Donation recorded!</div>
-                            <div style={{ fontSize: '0.8125rem', color: 'var(--brand-green-dark)', opacity: 0.8 }}>
-                                Receipt <strong>{receipt}</strong> generated for ₹{parseFloat(form.amount || 0).toLocaleString('en-IN')}
-                            </div>
-                        </div>
-                        <button className="btn btn-sm btn-secondary" onClick={resetForm}>
-                            New Entry
-                        </button>
-                    </div>
-                )}
-
                 <form onSubmit={handleSubmit} style={{ opacity: status === 'submitting' ? 0.7 : 1, pointerEvents: status === 'submitting' ? 'none' : 'auto' }}>
+                    {/* Donor Details Card */}
                     <div className="card" style={{ marginBottom: '20px' }}>
                         <div className="card-header">
                             <h3>Donor Details</h3>
@@ -114,7 +125,7 @@ export default function DonationEntry() {
                             <div className="form-group">
                                 <label className="form-label">Donor Name *</label>
                                 <div style={{ position: 'relative' }}>
-                                    <User size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                                    <User size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: C.mutedText }} />
                                     <input
                                         type="text"
                                         name="donor_name"
@@ -129,15 +140,15 @@ export default function DonationEntry() {
                             </div>
 
                             <div className="form-group">
-                                <label className="form-label">Phone Number</label>
+                                <label className="form-label">Phone Number <span style={{ color: C.mutedText, textTransform: 'none', letterSpacing: 0, fontWeight: 400 }}>(Optional)</span></label>
                                 <div style={{ position: 'relative' }}>
-                                    <Phone size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                                    <Phone size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: C.mutedText }} />
                                     <input
                                         type="tel"
                                         name="phone"
                                         value={form.phone}
                                         onChange={handleChange}
-                                        placeholder="+91 98765 43210"
+                                        placeholder="+91 Enter mobile number"
                                         className="form-input"
                                         style={{ width: '100%', paddingLeft: '40px' }}
                                     />
@@ -146,77 +157,101 @@ export default function DonationEntry() {
                         </div>
                     </div>
 
+                    {/* Payment Details Card */}
                     <div className="card" style={{ marginBottom: '20px' }}>
                         <div className="card-header">
                             <h3>Payment Details</h3>
                         </div>
                         <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                            {/* Amount — Large Input */}
-                            <div className="form-group" style={{ alignItems: 'center' }}>
-                                <label className="form-label">Amount *</label>
+                            {/* Amount presets */}
+                            <div className="form-group">
+                                <label className="form-label">Donation Amount</label>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
+                                    {presets.map((p) => (
+                                        <button
+                                            key={p}
+                                            type="button"
+                                            onClick={() => setForm(f => ({ ...f, amount: String(p) }))}
+                                            style={{
+                                                padding: '8px 15px', borderRadius: 10,
+                                                border: `1.5px solid ${form.amount === String(p) ? C.saffron : C.border}`,
+                                                background: form.amount === String(p) ? `${C.saffron}15` : C.cardBg,
+                                                fontFamily: 'Sora', fontSize: 12, fontWeight: 600,
+                                                color: form.amount === String(p) ? C.saffron : C.warmText, cursor: 'pointer',
+                                                transition: 'all 150ms ease',
+                                            }}
+                                        >₹{Number(p).toLocaleString('en-IN')}</button>
+                                    ))}
+                                </div>
                                 <div style={{ position: 'relative', width: '100%', maxWidth: '300px' }}>
                                     <span style={{
-                                        position: 'absolute',
-                                        left: '16px',
-                                        top: '50%',
-                                        transform: 'translateY(-50%)',
-                                        fontSize: '1.25rem',
-                                        color: 'var(--text-muted)',
-                                        fontWeight: 500,
+                                        position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)',
+                                        fontFamily: 'Sora', fontSize: '1.125rem', fontWeight: 800, color: C.saffron,
                                     }}>₹</span>
                                     <input
                                         type="number"
                                         name="amount"
                                         value={form.amount}
                                         onChange={handleChange}
-                                        placeholder="0"
+                                        placeholder="Custom amount"
                                         className="form-input form-input-lg"
-                                        style={{ width: '100%', paddingLeft: '40px' }}
+                                        style={{ width: '100%', paddingLeft: '38px', textAlign: 'left' }}
                                         min="1"
                                         required
                                     />
                                 </div>
                             </div>
 
-                            {/* Payment Mode */}
-                            <div className="form-group">
-                                <label className="form-label">Payment Mode</label>
-                                <div className="toggle-group">
-                                    {[
-                                        { value: 'cash', label: '💵 Cash' },
-                                        { value: 'upi', label: '📱 UPI' },
-                                        { value: 'bank_transfer', label: '🏦 Bank' },
-                                        { value: 'cheque', label: '📝 Cheque' },
-                                    ].map((mode) => (
-                                        <button
-                                            key={mode.value}
-                                            type="button"
-                                            className={`toggle-option ${form.payment_mode === mode.value ? 'active' : ''}`}
-                                            onClick={() => setForm((p) => ({ ...p, payment_mode: mode.value }))}
-                                        >
-                                            {mode.label}
-                                        </button>
-                                    ))}
+                            {/* Payment Mode & Status Row */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
+                                <div className="form-group">
+                                    <label className="form-label">Payment Mode</label>
+                                    <div className="toggle-group">
+                                        {[
+                                            { value: 'cash', label: '💵 Cash' },
+                                            { value: 'upi', label: '📱 Online' },
+                                            { value: 'cheque', label: '🏦 Cheque' },
+                                        ].map((mode) => (
+                                            <button
+                                                key={mode.value}
+                                                type="button"
+                                                className={`toggle-option ${form.payment_mode === mode.value ? 'active' : ''}`}
+                                                onClick={() => setForm((p) => ({ ...p, payment_mode: mode.value }))}
+                                            >
+                                                {mode.label}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
 
-                            {/* Payment Status */}
-                            <div className="form-group">
-                                <label className="form-label">Status</label>
-                                <div className="toggle-group" style={{ maxWidth: '240px' }}>
-                                    {[
-                                        { value: 'paid', label: '✅ Paid' },
-                                        { value: 'due', label: '⏳ Due' },
-                                    ].map((s) => (
-                                        <button
-                                            key={s.value}
-                                            type="button"
-                                            className={`toggle-option ${form.payment_status === s.value ? 'active' : ''}`}
-                                            onClick={() => setForm((p) => ({ ...p, payment_status: s.value }))}
-                                        >
-                                            {s.label}
-                                        </button>
-                                    ))}
+                                <div className="form-group">
+                                    <label className="form-label">Payment Status</label>
+                                    <div className="toggle-group">
+                                        {[
+                                            { value: 'paid', label: '✅ Paid' },
+                                            { value: 'due', label: '⏳ Due' },
+                                        ].map((s) => (
+                                            <button
+                                                key={s.value}
+                                                type="button"
+                                                className={`toggle-option ${form.payment_status === s.value ? 'active' : ''}`}
+                                                onClick={() => setForm((p) => ({ ...p, payment_status: s.value }))}
+                                                style={{
+                                                    borderColor: form.payment_status === s.value
+                                                        ? (s.value === 'paid' ? C.forest : C.crimson)
+                                                        : undefined,
+                                                    color: form.payment_status === s.value
+                                                        ? (s.value === 'paid' ? C.forest : C.crimson)
+                                                        : undefined,
+                                                    background: form.payment_status === s.value
+                                                        ? (s.value === 'paid' ? `${C.forest}12` : `${C.crimson}12`)
+                                                        : undefined,
+                                                }}
+                                            >
+                                                {s.label}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
 
@@ -242,56 +277,54 @@ export default function DonationEntry() {
                                 <MapPin size={18} />
                             </div>
                             <div style={{ flex: 1 }}>
-                                <div style={{ fontSize: '0.875rem', fontWeight: 500 }}>GPS Location Captured</div>
-                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>22.5726° N, 88.3639° E</div>
+                                <div style={{ fontFamily: 'Sora', fontSize: '0.875rem', fontWeight: 600, color: C.warmText }}>GPS Location Captured</div>
+                                <div style={{ fontFamily: 'Sora', fontSize: '0.75rem', color: C.mutedText }}>Lat: 22.5184, Long: 88.3756 · Location recorded</div>
                             </div>
-                            <span className="badge badge-active">Auto</span>
+                            <span className="badge badge-active">✓ GPS Active</span>
                         </div>
                     </div>
 
-                    {/* Submit */}
-                    <button
-                        type="submit"
-                        className="btn btn-primary"
-                        style={{
-                            width: '100%',
-                            height: '52px',
-                            fontSize: '1rem',
-                            fontWeight: 600,
-                            justifyContent: 'center',
-                            borderRadius: 'var(--radius-lg)',
-                        }}
-                        disabled={status === 'submitting'}
-                    >
-                        {status === 'submitting' ? <Loader2 size={20} className="animate-spin" /> : <Receipt size={20} />}
-                        {status === 'submitting' ? 'Recording...' : 'Record Donation & Generate Receipt'}
-                    </button>
+                    {/* Submit Buttons */}
+                    <div style={{ display: 'flex', gap: 12 }}>
+                        <button
+                            type="submit"
+                            className="btn btn-primary"
+                            style={{
+                                flex: 2,
+                                height: '52px',
+                                fontSize: '0.9375rem',
+                                fontWeight: 700,
+                                justifyContent: 'center',
+                                borderRadius: '13px',
+                                letterSpacing: '0.04em',
+                            }}
+                            disabled={status === 'submitting'}
+                        >
+                            {status === 'submitting' ? <Loader2 size={20} className="animate-spin" /> : <Receipt size={18} />}
+                            {status === 'submitting' ? 'Recording...' : 'CONFIRM DONATION'}
+                        </button>
+                        <button
+                            type="button"
+                            className="btn btn-secondary"
+                            style={{
+                                flex: 1,
+                                height: '52px',
+                                fontSize: '0.8125rem',
+                                fontWeight: 600,
+                                justifyContent: 'center',
+                                borderRadius: '13px',
+                            }}
+                            onClick={handleSubmit}
+                            disabled={status === 'submitting'}
+                        >
+                            Save & New →
+                        </button>
+                    </div>
+                    <p style={{ fontFamily: 'Sora', fontSize: 11, color: C.mutedText, textAlign: 'center', marginTop: 12 }}>
+                        * SMS receipt will be sent to the donor's mobile number
+                    </p>
                 </form>
             </div>
-
-            <style>{`
-                .success-banner {
-                    background: var(--brand-green-light);
-                    border: 1px solid var(--brand-green);
-                    border-radius: var(--radius-lg);
-                    padding: 16px 20px;
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                    margin-bottom: 24px;
-                    animation: slideIn 0.3s ease;
-                }
-                .icon-wrapper {
-                    width: 32px; height: 32px; 
-                    background: rgba(255,255,255,0.2); 
-                    border-radius: 50%; 
-                    display: flex; align-items: center; justify-content: center;
-                }
-                @keyframes slideIn {
-                    from { opacity: 0; transform: translateY(-8px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-            `}</style>
         </>
     );
 }

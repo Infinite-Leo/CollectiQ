@@ -115,8 +115,8 @@ export default function Donations() {
             {/* Page Title Row */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                 <div>
-                    <h2 style={{ fontSize: '1.375rem', fontWeight: 700 }}>Donations</h2>
-                    <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                    <h2 style={{ fontFamily: 'Playfair Display', fontSize: '1.375rem', fontWeight: 700, color: '#2C1A0E' }}>Donations</h2>
+                    <p style={{ fontFamily: 'Sora', fontSize: '0.875rem', color: '#7A5A3A', marginTop: '4px' }}>
                         {filtered.length} donations · ₹{filtered.reduce((s, d) => s + d.amount, 0).toLocaleString('en-IN')} collected
                     </p>
                 </div>
@@ -257,7 +257,7 @@ export default function Donations() {
                                     </td>
                                     <td>
                                         <span className={`badge badge-${d.status}`}>
-                                            {d.status === 'paid' ? 'Paid' : 'Due'}
+                                            {d.status === 'paid' ? '✓ Paid' : '⏳ Due'}
                                         </span>
                                     </td>
                                     <td style={{ color: 'var(--text-muted)', fontSize: '0.8125rem' }}>

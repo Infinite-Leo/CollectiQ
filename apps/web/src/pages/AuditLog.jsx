@@ -35,8 +35,8 @@ export default function AuditLog() {
         <div className="page-body">
             <div className="card-header" style={{ border: 'none', padding: '0 0 var(--space-6) 0', background: 'transparent' }}>
                 <div>
-                    <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-primary)' }}>Audit Log</h2>
-                    <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                    <h2 style={{ fontFamily: 'Playfair Display', fontSize: '1.25rem', fontWeight: 700, color: '#2C1A0E' }}>Audit Log</h2>
+                    <p style={{ fontFamily: 'Sora', fontSize: '0.875rem', color: '#7A5A3A', marginTop: '4px' }}>
                         Track system activities and changes.
                     </p>
                 </div>

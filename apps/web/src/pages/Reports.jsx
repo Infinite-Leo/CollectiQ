@@ -96,8 +96,8 @@ export default function Reports() {
         <div className="page-body">
             <div className="card-header" style={{ border: 'none', padding: '0 0 var(--space-6) 0', background: 'transparent' }}>
                 <div>
-                    <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-primary)' }}>Reports & Analytics</h2>
-                    <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                    <h2 style={{ fontFamily: 'Playfair Display', fontSize: '1.25rem', fontWeight: 700, color: '#2C1A0E' }}>Reports & Analytics</h2>
+                    <p style={{ fontFamily: 'Sora', fontSize: '0.875rem', color: '#7A5A3A', marginTop: '4px' }}>
                         Export data and view detailed performance metrics.
                     </p>
                 </div>
@@ -130,7 +130,7 @@ export default function Reports() {
                                     <Download size={14} /> CSV
                                 </button>
                             </div>
-                            <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>{r.title}</h3>
+                            <h3 style={{ fontFamily: 'Playfair Display', fontSize: '1rem', fontWeight: 700, color: '#2C1A0E', marginBottom: '4px' }}>{r.title}</h3>
                             <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: 'var(--space-4)' }}>
                                 {r.description}
                             </p>
@@ -141,7 +141,7 @@ export default function Reports() {
             </div>
 
             <div>
-                <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: 'var(--space-4)' }}>Generated Reports</h3>
+                <h3 style={{ fontFamily: 'Playfair Display', fontSize: '1rem', fontWeight: 700, color: '#2C1A0E', marginBottom: 'var(--space-4)' }}>Generated Reports</h3>
                 <div className="card">
                     <div className="table-wrapper">
                         <table>
