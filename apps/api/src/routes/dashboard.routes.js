@@ -9,27 +9,31 @@ router.get('/summary', async (req, res, next) => {
     try {
         const supabase = req.accessToken ? createUserClient(req.accessToken) : supabaseAdmin;
         const { event_id } = req.query;
+        const eventId = event_id || null;
 
         // Total collection
-        const { data: totalData } = await supabase
+        const { data: totalData, error: totalErr } = await supabase
             .rpc('dashboard_total_collection', {
                 p_club_id: req.clubId,
-                p_event_id: event_id,
+                p_event_id: eventId,
             });
+        if (totalErr) console.error('total_collection RPC error:', totalErr);
 
         // Today's collection
-        const { data: todayData } = await supabase
+        const { data: todayData, error: todayErr } = await supabase
             .rpc('dashboard_today_collection', {
                 p_club_id: req.clubId,
-                p_event_id: event_id,
+                p_event_id: eventId,
             });
+        if (todayErr) console.error('today_collection RPC error:', todayErr);
 
         // Pending houses
-        const { data: houseStats } = await supabase
+        let houseQuery = supabase
             .from('houses')
             .select('is_collected', { count: 'exact' })
-            .eq('club_id', req.clubId)
-            .eq('event_id', event_id);
+            .eq('club_id', req.clubId);
+        if (eventId) houseQuery = houseQuery.eq('event_id', eventId);
+        const { data: houseStats } = await houseQuery;
 
         const totalHouses = houseStats?.length || 0;
         const collectedHouses = houseStats?.filter((h) => h.is_collected).length || 0;
@@ -57,7 +61,7 @@ router.get('/collector-stats', async (req, res, next) => {
         const { data, error } = await supabase
             .rpc('dashboard_collector_ranking', {
                 p_club_id: req.clubId,
-                p_event_id: event_id,
+                p_event_id: event_id || null,
             });
 
         if (error) throw error;
@@ -76,7 +80,7 @@ router.get('/payment-split', async (req, res, next) => {
         const { data, error } = await supabase
             .rpc('dashboard_payment_split', {
                 p_club_id: req.clubId,
-                p_event_id: event_id,
+                p_event_id: event_id || null,
             });
 
         if (error) throw error;
@@ -95,7 +99,7 @@ router.get('/trend', async (req, res, next) => {
         const { data, error } = await supabase
             .rpc('dashboard_collection_trend', {
                 p_club_id: req.clubId,
-                p_event_id: event_id,
+                p_event_id: event_id || null,
                 p_days: +days,
             });
 
