@@ -26,9 +26,13 @@ app.use(helmet());
 app.use(cors({
     origin: [
         process.env.CLIENT_URL || 'http://localhost:5173',
+        'https://collecti-q-web.vercel.app',
         'http://127.0.0.1:5173',
         'http://localhost:5173',
+        'http://localhost:3000',
+        'http://localhost:3002',
     ],
+    credentials: true,
 }));
 app.use(express.json({ limit: '1mb' }));
 
