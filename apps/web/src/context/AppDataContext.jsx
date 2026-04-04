@@ -148,7 +148,7 @@ export function AppDataProvider({ children }) {
                 amount: parseFloat(donation.amount),
                 payment_mode: donation.mode || 'cash',
                 donor_id: donation.donor_id || null,
-                status: donation.status || 'paid'
+                payment_status: donation.status || 'paid'
             };
             const res = await apiFetch('/api/donations', {
                 method: 'POST',
@@ -176,13 +176,13 @@ export function AppDataProvider({ children }) {
     const addHouse = useCallback(async (house) => {
         try {
             const payload = {
-                address: house.address,
+                address_line: house.address,
                 donor_name: house.donor,
                 phone: house.phone,
                 priority: house.priority || 'normal',
-                last_year: house.lastYear || 0,
-                lat: house.lat,
-                lng: house.lng
+                last_year_amount: house.lastYear || 0,
+                latitude: house.lat,
+                longitude: house.lng
             };
             const res = await apiFetch('/api/houses', {
                 method: 'POST',
@@ -215,7 +215,7 @@ export function AppDataProvider({ children }) {
         try {
             await apiFetch(`/api/houses/${houseId}`, {
                 method: 'PATCH',
-                body: JSON.stringify({ is_collected: !house.is_collected })
+                body: JSON.stringify({ is_collected: !house.collected })
             });
         } catch (err) {
             console.error("Failed to toggle house status:", err);
