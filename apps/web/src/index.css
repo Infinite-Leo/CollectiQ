@@ -516,7 +516,7 @@ a:hover {
   gap: 9px;
   padding: 9px 12px;
   border-radius: 10px;
-  color: rgba(212, 175, 55, 0.45);
+  color: rgba(212, 175, 55, 0.65);
   font-size: 0.8125rem;
   font-weight: 400;
   transition: all var(--transition-fast);
@@ -532,7 +532,7 @@ a:hover {
 
 .sidebar-link:hover {
   background: rgba(212, 175, 55, 0.06);
-  color: rgba(212, 175, 55, 0.7);
+  color: rgba(212, 175, 55, 0.85);
   transform: translateX(2px);
 }
 
@@ -2096,4 +2096,247 @@ td .amount {
   .auth-form-panel {
     padding: 32px 28px;
   }
+}
+
+/* ============================================================================
+   DARK THEME — Comprehensive Overrides
+   ============================================================================ */
+.dark {
+  /* ---- Core Backgrounds ---- */
+  --bg-page: #0F0906;
+  --bg-surface: #1C110A;
+  --bg-surface-hover: #261810;
+  --bg-surface-sunken: #0A0503;
+  --bg-surface-glass: rgba(28, 17, 10, 0.85);
+  --bg-header-translucent: rgba(15, 9, 6, 0.92);
+
+  /* ---- Text ---- */
+  --text-primary: #F2E4CF;
+  --text-secondary: #D4BFA0;
+  --text-muted: #9A7B60;
+  --text-saffron: #E8963A;
+
+  /* ---- Borders ---- */
+  --border-default: rgba(201, 123, 42, 0.22);
+  --border-light: rgba(201, 123, 42, 0.12);
+
+  /* ---- Shadows (muted for dark) ---- */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 2px 16px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 6px 28px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 12px 40px rgba(0, 0, 0, 0.55);
+  --shadow-card: 0 2px 16px rgba(0, 0, 0, 0.35);
+  --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.3);
+
+  /* ---- Semantic colors (dark-shifted) ---- */
+  --brand-saffron-light: #2C1A0E;
+  --brand-saffron-dark: #E8963A;
+  --brand-green-light: #0E2818;
+  --brand-green-dark: #3DBF72;
+  --color-error-light: #2B0E0E;
+  --color-warning-light: #2B220E;
+  --color-info-light: #0E1A2B;
+}
+
+/* ---- Dark: Selection ---- */
+.dark ::selection {
+  background: rgba(201, 123, 42, 0.35);
+  color: #F2E4CF;
+}
+
+/* ---- Dark: Scrollbar ---- */
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(201, 123, 42, 0.35);
+}
+
+/* ---- Dark: Card gold line ---- */
+.dark .card::before {
+  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.12), transparent);
+}
+
+/* ---- Dark: KPI ---- */
+.dark .kpi-card::after {
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, transparent 70%);
+}
+
+/* ---- Dark: Tables ---- */
+.dark thead th {
+  background: rgba(201, 123, 42, 0.06);
+  color: var(--text-muted);
+}
+
+/* ---- Dark: Badges ---- */
+.dark .badge-paid { background: rgba(30, 92, 58, 0.18); color: #4BD688; }
+.dark .badge-due { background: rgba(139, 26, 26, 0.2); color: #E85C5C; }
+.dark .badge-cash { background: rgba(201, 123, 42, 0.15); color: #E8963A; }
+.dark .badge-upi { background: rgba(74, 111, 165, 0.18); color: #7BA3D9; }
+.dark .badge-active { background: rgba(30, 92, 58, 0.18); color: #4BD688; }
+.dark .badge-draft { background: rgba(201, 123, 42, 0.1); color: var(--text-muted); }
+.dark .badge-closed { background: rgba(139, 26, 26, 0.2); color: #E85C5C; }
+.dark .badge-low { background: rgba(212, 175, 55, 0.15); color: #E8963A; }
+.dark .badge-medium { background: rgba(201, 123, 42, 0.15); color: #E8963A; }
+.dark .badge-high { background: rgba(139, 26, 26, 0.18); color: #E85C5C; }
+.dark .badge-bank_transfer { background: rgba(30, 92, 58, 0.18); color: #4BD688; }
+
+/* ---- Dark: KPI deltas ---- */
+.dark .kpi-delta.up { background: rgba(30, 92, 58, 0.2); color: #4BD688; }
+.dark .kpi-delta.down { background: rgba(139, 26, 26, 0.2); color: #E85C5C; }
+
+/* ---- Dark: KPI icons ---- */
+.dark .kpi-icon.saffron {
+  background: linear-gradient(135deg, rgba(201, 123, 42, 0.15), rgba(201, 123, 42, 0.25));
+  border-color: rgba(201, 123, 42, 0.25);
+}
+.dark .kpi-icon.green {
+  background: linear-gradient(135deg, rgba(30, 92, 58, 0.15), rgba(30, 92, 58, 0.25));
+  border-color: rgba(30, 92, 58, 0.25);
+  color: #4BD688;
+}
+.dark .kpi-icon.gold {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.15), rgba(212, 175, 55, 0.25));
+  border-color: rgba(212, 175, 55, 0.25);
+}
+.dark .kpi-icon.error {
+  background: linear-gradient(135deg, rgba(139, 26, 26, 0.15), rgba(139, 26, 26, 0.25));
+  border-color: rgba(139, 26, 26, 0.25);
+  color: #E85C5C;
+}
+
+/* ---- Dark: Forms ---- */
+.dark .form-input {
+  background: #140B06;
+  color: var(--text-primary);
+  border-color: rgba(201, 123, 42, 0.2);
+}
+.dark .form-input:focus {
+  border-color: #E8963A;
+  box-shadow: 0 0 0 3px rgba(201, 123, 42, 0.2);
+}
+.dark .form-input::placeholder {
+  color: var(--text-muted);
+}
+.dark select.form-input {
+  background: #140B06;
+  color: var(--text-primary);
+}
+
+/* ---- Dark: Toggle options ---- */
+.dark .toggle-option {
+  background: #140B06;
+  color: var(--text-primary);
+  border-color: rgba(201, 123, 42, 0.15);
+}
+.dark .toggle-option.active {
+  background: rgba(201, 123, 42, 0.12);
+  border-color: #C97B2A;
+  color: #E8963A;
+}
+
+/* ---- Dark: Buttons ---- */
+.dark .btn-secondary {
+  background: #1C110A;
+  color: var(--text-primary);
+  border-color: rgba(201, 123, 42, 0.25);
+}
+.dark .btn-secondary:hover:not(:disabled) {
+  background: #261810;
+  border-color: #C97B2A;
+  color: #E8963A;
+}
+.dark .btn-ghost:hover:not(:disabled) {
+  background: rgba(201, 123, 42, 0.1);
+  color: var(--text-primary);
+}
+.dark .btn-icon {
+  color: var(--text-muted);
+}
+.dark .btn-icon:hover {
+  background: rgba(201, 123, 42, 0.1);
+  color: var(--text-primary);
+}
+
+/* ---- Dark: Modal / Confirm Dialog ---- */
+.dark .modal-backdrop {
+  background: rgba(0, 0, 0, 0.7);
+}
+.dark .confirm-dialog h3 {
+  color: var(--text-primary);
+}
+.dark .confirm-dialog p {
+  color: var(--text-secondary);
+}
+
+/* ---- Dark: Settings page header ---- */
+.dark .card-header h3 {
+  color: var(--text-primary);
+}
+
+/* ---- Dark: Pagination & misc text ---- */
+.dark .pagination-info {
+  color: var(--text-muted);
+}
+
+/* ---- Dark: Event badge ---- */
+.dark .event-badge {
+  background: rgba(201, 123, 42, 0.12);
+  border-color: rgba(201, 123, 42, 0.2);
+}
+
+/* ---- Dark: Auth pages (login/signup) ---- */
+.dark .auth-card {
+  background: #1C110A;
+  border-color: rgba(201, 123, 42, 0.2);
+}
+.dark .auth-brand-panel {
+  background: linear-gradient(170deg, #1A0A04 0%, #0F0906 100%);
+}
+
+/* ---- Dark: Sidebar-link active (already dark, but ensure text) ---- */
+.dark .sidebar-link.active {
+  color: #D4AF37;
+}
+
+/* ---- Dark: Progress bar ---- */
+.dark .progress-bar {
+  background: rgba(201, 123, 42, 0.15);
+}
+
+/* ============================================================================
+   RESIZABLE SIDEBAR
+   ============================================================================ */
+.sidebar-resize-handle {
+  position: absolute;
+  top: 0;
+  right: -4px;
+  width: 8px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 60;
+  background: transparent;
+  transition: background 0.15s ease;
+}
+
+.sidebar-resize-handle:hover,
+.sidebar-resize-handle.active {
+  background: rgba(201, 123, 42, 0.3);
+}
+
+.sidebar-resize-handle::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 3px;
+  height: 32px;
+  border-radius: 3px;
+  background: rgba(212, 175, 55, 0.2);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.sidebar-resize-handle:hover::after,
+.sidebar-resize-handle.active::after {
+  opacity: 1;
 }

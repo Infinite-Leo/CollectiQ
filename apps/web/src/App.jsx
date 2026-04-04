@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { AppDataProvider } from './context/AppDataContext';
+import { ThemeProvider } from './context/ThemeContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './layouts/Layout';
 import Dashboard from './pages/Dashboard';
@@ -17,8 +18,9 @@ import Signup from './pages/Signup';
 
 export default function App() {
     return (
-        <AuthProvider>
-            <AppDataProvider>
+        <ThemeProvider>
+            <AuthProvider>
+                <AppDataProvider>
                 <Routes>
                     {/* Public routes */}
                     <Route path="login" element={<Login />} />
@@ -44,5 +46,6 @@ export default function App() {
                 </Routes>
             </AppDataProvider>
         </AuthProvider>
+        </ThemeProvider>
     );
 }

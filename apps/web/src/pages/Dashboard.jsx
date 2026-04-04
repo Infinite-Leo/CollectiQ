@@ -27,20 +27,21 @@ import DonationForm from '../components/DonationForm';
 import { useAppData } from '../context/AppDataContext';
 
 // ── Design colors matching reference ─────────────────────────────
+// Text/background colors use CSS variables so dark mode works automatically
 const C = {
     saffron: '#C97B2A',
     saffronLight: '#E8963A',
     gold: '#D4AF37',
-    cream: '#FBF5E6',
-    ivory: '#FFFBF3',
-    warmText: '#2C1A0E',
-    mutedText: '#7A5A3A',
+    cream: 'var(--bg-page)',
+    ivory: 'var(--bg-surface)',
+    warmText: 'var(--text-primary)',
+    mutedText: 'var(--text-muted)',
     forest: '#1E5C3A',
     forestLight: '#2D8A58',
     crimson: '#8B1A1A',
-    cardBg: '#FFFBF3',
-    border: 'rgba(201,123,42,0.15)',
-    shadow: '0 2px 16px rgba(44,24,16,0.08)',
+    cardBg: 'var(--bg-surface)',
+    border: 'var(--border-default)',
+    shadow: 'var(--shadow-md)',
 };
 
 const fmt = (n) => '₹' + Number(n).toLocaleString('en-IN');

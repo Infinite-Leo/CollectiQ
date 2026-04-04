@@ -1,22 +1,29 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { User, Shield, Building, Save, AlertCircle, Bell, Palette } from 'lucide-react';
 import { useToast } from '../components/ui/Toast';
 import Modal from '../components/Modal';
+import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
+import { supabase } from '../config/supabase';
 
 export default function Settings() {
     const [activeTab, setActiveTab] = useState('profile');
     const [showResetConfirm, setShowResetConfirm] = useState(false);
     const toast = useToast();
 
-    const [profile, setProfile] = useState({ firstName: 'Arjun', lastName: 'Das' });
+    const { user } = useAuth();
+    const { theme, setTheme } = useTheme();
+
+    const [profile, setProfile] = useState({ firstName: '', lastName: '' });
     const [club, setClub] = useState({
-        name: 'Durga Nagar Club',
-        address: '123 Temple Road, Durga Nagar, West Bengal',
+        id: null,
+        name: '',
+        address: '',
         primaryColor: '#EA580C',
         accentColor: '#F59E0B',
     });
     const [preferences, setPreferences] = useState({
-        theme: 'light',
+        theme: theme,
         language: 'en',
         timezone: 'Asia/Kolkata',
         dateFormat: 'DD/MM/YYYY',
@@ -29,18 +36,63 @@ export default function Settings() {
         pushAlerts: true,
     });
 
-    const handleSaveProfile = (e) => {
+    useEffect(() => {
+        if (user) {
+            const nameParts = (user.user_metadata?.full_name || '').split(' ');
+            setProfile({
+                firstName: nameParts[0] || '',
+                lastName: nameParts.slice(1).join(' ') || ''
+            });
+
+            const fetchProfile = async () => {
+                const { data } = await supabase.from('users').select('*, club_members(clubs(*))').eq('auth_uid', user.id).single();
+                if (data && data.club_members && data.club_members.length > 0) {
+                    const c = data.club_members[0].clubs;
+                    if (c) {
+                        setClub({
+                            id: c.id,
+                            name: c.name || '',
+                            address: c.address || '',
+                            primaryColor: c.settings?.primaryColor || '#EA580C',
+                            accentColor: c.settings?.accentColor || '#F59E0B'
+                        });
+                    }
+                }
+            };
+            fetchProfile();
+        }
+    }, [user]);
+
+    const handleSaveProfile = async (e) => {
         e.preventDefault();
-        toast.success('Profile saved successfully!');
+        const fullName = `${profile.firstName} ${profile.lastName}`.trim();
+        const { error } = await supabase.auth.updateUser({
+            data: { full_name: fullName }
+        });
+        if (error) {
+            toast.error(error.message);
+        } else {
+            await supabase.from('users').update({ full_name: fullName }).eq('auth_uid', user.id);
+            toast.success('Profile saved successfully!');
+        }
     };
 
-    const handleUpdateClub = (e) => {
+    const handleUpdateClub = async (e) => {
         e.preventDefault();
-        toast.success('Club settings updated!');
+        if (club.id) {
+            const { error } = await supabase.from('clubs').update({
+                name: club.name,
+                address: club.address,
+                settings: { primaryColor: club.primaryColor, accentColor: club.accentColor }
+            }).eq('id', club.id);
+            if (error) toast.error(error.message);
+            else toast.success('Club settings updated!');
+        }
     };
 
     const handleSavePreferences = (e) => {
         e.preventDefault();
+        setTheme(preferences.theme);
         toast.success('Preferences saved successfully!');
     };
 
@@ -49,9 +101,16 @@ export default function Settings() {
         toast.success('Notification settings updated!');
     };
 
-    const handleResetPassword = () => {
+    const handleResetPassword = async () => {
         setShowResetConfirm(false);
-        toast.info('Password reset email sent to president@durganagar.com');
+        const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
+            redirectTo: window.location.origin + '/settings',
+        });
+        if (error) {
+            toast.error(error.message);
+        } else {
+            toast.info(`Password reset email sent to ${user.email}`);
+        }
     };
 
     const tabButtonStyle = (isActive) => ({
@@ -80,7 +139,7 @@ export default function Settings() {
                         <AlertCircle size={28} />
                     </div>
                     <h3>Reset your password?</h3>
-                    <p>A password reset link will be sent to <strong>president@durganagar.com</strong>. You'll be logged out of all devices.</p>
+                    <p>A password reset link will be sent to <strong>{user?.email}</strong>. You'll be logged out of all devices.</p>
                     <div className="actions">
                         <button className="btn btn-secondary" onClick={() => setShowResetConfirm(false)}>Cancel</button>
                         <button className="btn btn-danger" onClick={handleResetPassword}>Send Reset Email</button>
@@ -90,8 +149,8 @@ export default function Settings() {
 
             <div className="card-header" style={{ border: 'none', padding: '0 0 var(--space-6) 0', background: 'transparent' }}>
                 <div>
-                    <h2 style={{ fontFamily: 'Playfair Display', fontSize: '1.25rem', fontWeight: 700, color: '#2C1A0E' }}>Settings</h2>
-                    <p style={{ fontFamily: 'Sora', fontSize: '0.875rem', color: '#7A5A3A', marginTop: '4px' }}>
+                    <h2 style={{ fontFamily: 'Playfair Display', fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)' }}>Settings</h2>
+                    <p style={{ fontFamily: 'Sora', fontSize: '0.875rem', color: 'var(--text-muted)', marginTop: '4px' }}>
                         Manage your profile, club configurations, preferences, and notifications.
                     </p>
                 </div>
@@ -147,7 +206,7 @@ export default function Settings() {
                                     </div>
                                     <div className="form-group">
                                         <label className="form-label">Email Address</label>
-                                        <input type="email" className="form-input" defaultValue="president@durganagar.com" disabled
+                                        <input type="email" className="form-input" value={user?.email || ''} disabled
                                             style={{ background: 'var(--bg-surface-sunken)', cursor: 'not-allowed' }} />
                                         <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Contact admin to change email.</span>
                                     </div>

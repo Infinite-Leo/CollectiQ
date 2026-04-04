@@ -1,5 +1,6 @@
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import {
     LayoutDashboard, IndianRupee, MapPin, Users,
     Clock, ShieldAlert, BarChart3, Settings, Plus, LogOut
@@ -28,11 +29,57 @@ const navLinks = [
     },
 ];
 
+const MIN_WIDTH = 200;
+const MAX_WIDTH = 400;
+
 export default function Sidebar() {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
     const displayRole = user?.app_metadata?.role || 'Member';
+
+    const [sidebarWidth, setSidebarWidth] = useState(() => {
+        const saved = localStorage.getItem('sidebar-width');
+        return saved ? parseInt(saved, 10) : 260;
+    });
+    const isResizing = useRef(false);
+    const handleRef = useRef(null);
+
+    const handleMouseDown = useCallback((e) => {
+        e.preventDefault();
+        isResizing.current = true;
+        handleRef.current?.classList.add('active');
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+    }, []);
+
+    useEffect(() => {
+        const handleMouseMove = (e) => {
+            if (!isResizing.current) return;
+            const newWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, e.clientX));
+            setSidebarWidth(newWidth);
+            document.documentElement.style.setProperty('--sidebar-width', `${newWidth}px`);
+            localStorage.setItem('sidebar-width', newWidth);
+        };
+        const handleMouseUp = () => {
+            if (!isResizing.current) return;
+            isResizing.current = false;
+            handleRef.current?.classList.remove('active');
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+        };
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
+        return () => {
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, []);
+
+    // Apply saved width on mount
+    useEffect(() => {
+        document.documentElement.style.setProperty('--sidebar-width', `${sidebarWidth}px`);
+    }, [sidebarWidth]);
 
     const handleLogout = async () => {
         await logout();
@@ -40,7 +87,14 @@ export default function Sidebar() {
     };
 
     return (
-        <aside className="sidebar">
+        <aside className="sidebar" style={{ width: sidebarWidth }}>
+            {/* Resize Handle */}
+            <div
+                ref={handleRef}
+                className="sidebar-resize-handle"
+                onMouseDown={handleMouseDown}
+            />
+
             {/* Brand */}
             <div className="sidebar-brand">
                 <div className="sidebar-brand-icon">🪔</div>
@@ -110,3 +164,4 @@ export default function Sidebar() {
         </aside>
     );
 }
+
