@@ -88,6 +88,17 @@ export function AuthProvider({ children }) {
         return body;
     }, []);
 
+    const signInWithGoogle = useCallback(async () => {
+        const { data, error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: `${window.location.origin}/dashboard`
+            }
+        });
+        if (error) throw error;
+        return data;
+    }, []);
+
     const logout = useCallback(async () => {
         // Notify backend for audit logging before signing out
         try {
@@ -116,6 +127,7 @@ export function AuthProvider({ children }) {
         loading,
         login,
         signup,
+        signInWithGoogle,
         logout,
         getAccessToken,
         isAuthenticated: !!session,
