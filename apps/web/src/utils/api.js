@@ -1,6 +1,6 @@
 import { supabase } from '../config/supabase';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_BASE = import.meta.env.VITE_API_URL || '';
 
 /**
  * Wrapper around fetch that auto-injects the Supabase JWT.

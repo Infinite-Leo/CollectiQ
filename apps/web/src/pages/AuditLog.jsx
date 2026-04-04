@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Loader2, AlertCircle, LogIn, LogOut, UserPlus, XCircle, RefreshCw, Filter } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_BASE = import.meta.env.VITE_API_URL || '';
 
 const EVENT_CONFIG = {
     login:         { label: 'Login',         icon: LogIn,    color: '#1E5C3A', bg: '#E8F5EE', border: 'rgba(30,92,58,0.15)' },
