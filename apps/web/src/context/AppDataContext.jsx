@@ -1,82 +1,6 @@
-import { createContext, useContext, useState, useMemo, useCallback } from 'react';
-
-// ── Seed Data ────────────────────────────────────────────────────
-// Mirrors the existing hardcoded data across pages so the app feels
-// populated from the start, but now it's all in ONE place.
-
-const SEED_DONORS = [
-    { id: 'd1', full_name: 'Rajesh Banerjee', phone: '+91 98321 45678', zone: 'Zone A', created_at: '2026-10-01T10:00:00Z' },
-    { id: 'd2', full_name: 'Sunita Devi', phone: '+91 98765 43210', zone: 'Zone B', created_at: '2026-10-01T10:00:00Z' },
-    { id: 'd3', full_name: 'Amit Poddar', phone: '+91 90876 54321', zone: 'Zone A', created_at: '2026-10-01T10:00:00Z' },
-    { id: 'd4', full_name: 'Kavita Roy', phone: '+91 87654 32109', zone: 'Zone C', created_at: '2026-10-01T10:00:00Z' },
-    { id: 'd5', full_name: 'Dipak Mandal', phone: '+91 76543 21098', zone: 'Zone B', created_at: '2026-10-01T10:00:00Z' },
-    { id: 'd6', full_name: 'Meena Agarwal', phone: '+91 65432 10987', zone: 'Zone A', created_at: '2026-10-01T10:00:00Z' },
-    { id: 'd7', full_name: 'Suresh Patel', phone: '+91 54321 09876', zone: 'Zone D', created_at: '2026-10-01T10:00:00Z' },
-    { id: 'd8', full_name: 'Lalita Ghosh', phone: '+91 43210 98765', zone: 'Zone A', created_at: '2026-10-01T10:00:00Z' },
-];
-
-const SEED_COLLECTORS = [
-    { id: 'c1', name: 'Ravi Kumar', zone: 'Zone A', count: 38, dues: 2400, lastActive: 'Now', status: 'active', phone: '+91 98321 11111', since: 'Oct 2023' },
-    { id: 'c2', name: 'Priya Sen', zone: 'Zone A', count: 32, dues: 0, lastActive: '10 min ago', status: 'active', phone: '+91 98321 22222', since: 'Oct 2023' },
-    { id: 'c3', name: 'Ankit Sharma', zone: 'Zone B', count: 28, dues: 5600, lastActive: '1 hr ago', status: 'active', phone: '+91 98321 33333', since: 'Oct 2024' },
-    { id: 'c4', name: 'Sneha Das', zone: 'Zone B', count: 22, dues: 0, lastActive: '30 min ago', status: 'active', phone: '+91 98321 44444', since: 'Oct 2024' },
-    { id: 'c5', name: 'Manoj Ghosh', zone: 'Zone C', count: 19, dues: 3200, lastActive: '2 hrs ago', status: 'active', phone: '+91 98321 55555', since: 'Oct 2025' },
-    { id: 'c6', name: 'Suman Roy', zone: 'Zone D', count: 14, dues: 7200, lastActive: '1 day ago', status: 'inactive', phone: '+91 65432 10987', since: 'Oct 2024' },
-];
-
-const SEED_HOUSES = [
-    { id: 'h1', address: '12/A, Maniktala Main Rd', donor: 'Rajesh Banerjee', phone: '+91 98321 45678', zone: 'Zone A', lastYear: 5000, collected: true, priority: 'high', lat: 22.5876, lng: 88.3775 },
-    { id: 'h2', address: '45, Lake Town Block B', donor: 'Sunita Devi', phone: '+91 98765 43210', zone: 'Zone B', lastYear: 2000, collected: true, priority: 'normal', lat: 22.5997, lng: 88.4013 },
-    { id: 'h3', address: '78/3, Bagmari Rd', donor: 'Amit Poddar', phone: '+91 90876 54321', zone: 'Zone A', lastYear: 10000, collected: false, priority: 'critical', lat: 22.5742, lng: 88.3741 },
-    { id: 'h4', address: '22, Dum Dum Park', donor: 'Kavita Roy', phone: '+91 87654 32109', zone: 'Zone C', lastYear: 1500, collected: false, priority: 'normal', lat: 22.6197, lng: 88.4098 },
-    { id: 'h5', address: '56, Shyambazar 5 Point', donor: 'Dipak Mandal', phone: '+91 76543 21098', zone: 'Zone B', lastYear: 3000, collected: false, priority: 'high', lat: 22.5953, lng: 88.3730 },
-    { id: 'h6', address: '9, Gariahat Rd South', donor: 'Meena Agarwal', phone: '+91 65432 10987', zone: 'Zone A', lastYear: 7500, collected: true, priority: 'normal', lat: 22.5168, lng: 88.3665 },
-    { id: 'h7', address: '101, Salt Lake Sector V', donor: 'Suresh Patel', phone: '+91 54321 09876', zone: 'Zone D', lastYear: 2500, collected: false, priority: 'low', lat: 22.5724, lng: 88.4348 },
-    { id: 'h8', address: '34, Jadavpur Station Rd', donor: 'Lalita Ghosh', phone: '+91 43210 98765', zone: 'Zone A', lastYear: 4000, collected: true, priority: 'normal', lat: 22.4988, lng: 88.3706 },
-];
-
-// Generate 10 days of seed donations so the trend chart has data
-function generateSeedDonations() {
-    const donations = [];
-    let receiptNum = 248;
-    const modes = ['cash', 'upi', 'bank_transfer'];
-    const collectors = ['Ravi Kumar', 'Priya Sen', 'Ankit Sharma', 'Sneha Das', 'Manoj Ghosh'];
-
-    // Past 10 days of donations
-    for (let dayOffset = 9; dayOffset >= 0; dayOffset--) {
-        const date = new Date();
-        date.setDate(date.getDate() - dayOffset);
-        const perDay = dayOffset === 0 ? 3 : Math.floor(Math.random() * 4) + 2;
-
-        for (let j = 0; j < perDay; j++) {
-            const donor = SEED_DONORS[Math.floor(Math.random() * SEED_DONORS.length)];
-            const collector = collectors[Math.floor(Math.random() * collectors.length)];
-            const mode = modes[Math.floor(Math.random() * modes.length)];
-            const amount = [1000, 1500, 2000, 2500, 3000, 5000, 7500, 10000][Math.floor(Math.random() * 8)];
-            receiptNum++;
-            const d = new Date(date);
-            d.setHours(8 + Math.floor(Math.random() * 10), Math.floor(Math.random() * 60));
-
-            donations.push({
-                id: `don-${receiptNum}`,
-                receipt: `DNC-DP26-${String(receiptNum).padStart(6, '0')}`,
-                donor: donor.full_name,
-                donor_id: donor.id,
-                collector,
-                zone: donor.zone || 'Zone A',
-                amount,
-                mode,
-                status: Math.random() > 0.1 ? 'paid' : 'due',
-                date: d.toISOString(),
-            });
-        }
-    }
-    return donations;
-}
-
-const SEED_DONATIONS = generateSeedDonations();
-
-// ── Context ──────────────────────────────────────────────────────
+import { createContext, useContext, useState, useMemo, useCallback, useEffect } from 'react';
+import { apiFetch } from '../utils/api';
+import { useAuth } from './AuthContext';
 
 const AppDataContext = createContext(null);
 
@@ -87,150 +11,254 @@ export function useAppData() {
 }
 
 export function AppDataProvider({ children }) {
-    const [donors, setDonors] = useState(SEED_DONORS);
-    const [donations, setDonations] = useState(SEED_DONATIONS);
-    const [houses, setHouses] = useState(SEED_HOUSES);
-    const [collectors] = useState(SEED_COLLECTORS);
+    const { isAuthenticated, session } = useAuth();
+    
+    const [donors, setDonors] = useState([]);
+    const [donations, setDonations] = useState([]);
+    const [houses, setHouses] = useState([]);
+    const [collectors, setCollectors] = useState([]);
+    
+    // Aggregated stats from backend /api/dashboard/summary
+    const [dashboardStats, setDashboardStats] = useState({
+        total_collection: 0,
+        total_donations: 0,
+        today_collection: 0,
+        today_donations: 0,
+        total_houses: 0,
+        collected_houses: 0,
+        pending_houses: 0
+    });
+    
+    const [trendData, setTrendData] = useState([]);
+    const [paymentSplit, setPaymentSplit] = useState([
+        { name: 'Cash', value: 33, color: '#D97706' },
+        { name: 'UPI', value: 33, color: '#3B82F6' },
+        { name: 'Bank Transfer', value: 33, color: '#10B981' }
+    ]);
+    const [collectorRanking, setCollectorRanking] = useState([]);
+    
+    const [loading, setLoading] = useState(true);
 
-    // ── Receipt counter ───────────────────────────────────
-    const nextReceiptNum = useMemo(() => {
-        const nums = donations.map(d => {
-            const m = d.receipt.match(/(\d+)$/);
-            return m ? parseInt(m[1], 10) : 0;
-        });
-        return Math.max(...nums, 300) + 1;
-    }, [donations]);
+    // Initial Data Load
+    useEffect(() => {
+        if (!isAuthenticated) return;
+        
+        async function loadData() {
+            setLoading(true);
+            try {
+                // Determine event_id (you might have a central 'active_event_id' setting)
+                // For now, we will query without it and let the backend default appropriately
+                const [
+                    donorsRes,
+                    donationsRes,
+                    housesRes,
+                    summaryRes,
+                    trendRes,
+                    splitRes,
+                    collectorRes
+                ] = await Promise.all([
+                    apiFetch('/api/donors'),
+                    apiFetch('/api/donations?limit=100'), // Load recent donations
+                    apiFetch('/api/houses'),
+                    apiFetch('/api/dashboard/summary'),
+                    apiFetch('/api/dashboard/trend?days=10'),
+                    apiFetch('/api/dashboard/payment-split'),
+                    apiFetch('/api/dashboard/collector-stats')
+                ]);
+
+                if (donorsRes.data) {
+                    setDonors(donorsRes.data.map(d => ({
+                        ...d,
+                        zone: d.zones?.name || 'Zone A'
+                    })));
+                }
+                
+                if (donationsRes.data) {
+                    setDonations(donationsRes.data.map(d => ({
+                        ...d,
+                        receipt: d.receipt_number,
+                        donor: d.donors?.full_name || '-',
+                        collector: d.users?.full_name || 'Collector',
+                        zone: d.zones?.name || '-',
+                        mode: d.payment_mode,
+                        date: d.created_at
+                    })));
+                }
+
+                if (housesRes.data) {
+                    setHouses(housesRes.data.map(h => ({
+                        ...h,
+                        collected: h.is_collected,
+                        lastYear: h.last_year || 0,
+                        zone: h.zones?.name || 'Zone A',
+                        donor: h.donors?.full_name || h.donor_name || 'Guest',
+                        phone: h.donors?.phone || h.phone || '-'
+                    })));
+                }
+                if (summaryRes) setDashboardStats(summaryRes);
+                if (trendRes.data) {
+                    setTrendData(trendRes.data.map(t => ({ date: t.date, amount: t.total_amount })));
+                }
+                if (splitRes.data) {
+                    // Standardize payment split for pie chart
+                    const split = splitRes.data.map(s => ({
+                        name: s.payment_mode === 'bank_transfer' ? 'Bank Transfer' : s.payment_mode.toUpperCase(),
+                        value: s.count,
+                        color: s.payment_mode === 'cash' ? '#D97706' : s.payment_mode === 'upi' ? '#3B82F6' : '#10B981'
+                    }));
+                    if (split.length > 0) setPaymentSplit(split);
+                }
+                if (collectorRes.data) {
+                    setCollectorRanking(collectorRes.data.map(c => ({ name: c.collector_name || 'Unknown', amount: c.total_amount })));
+                }
+
+            } catch (err) {
+                console.error("Failed to fetch app data:", err);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        loadData();
+    }, [isAuthenticated, session]);
+
 
     // ── Mutations ─────────────────────────────────────────
-    const addDonor = useCallback((donor) => {
-        const newDonor = {
-            id: `d-${Date.now()}`,
-            full_name: donor.full_name,
-            phone: donor.phone || null,
-            zone: donor.zone || null,
-            created_at: new Date().toISOString(),
-        };
-        setDonors(prev => [...prev, newDonor]);
-        return newDonor;
+    
+    const addDonor = useCallback(async (donor) => {
+        try {
+            const payload = { full_name: donor.full_name, phone: donor.phone };
+            const res = await apiFetch('/api/donors', {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+            if (res.data) {
+                setDonors(prev => [...prev, { ...res.data, zone: 'Zone A' }]);
+                return res.data;
+            }
+        } catch (err) {
+            console.error("Failed to add donor:", err);
+            throw err;
+        }
     }, []);
 
-    const addDonation = useCallback((donation) => {
-        const receipt = `DNC-DP26-${String(nextReceiptNum).padStart(6, '0')}`;
-        const newDonation = {
-            id: `don-${Date.now()}`,
-            receipt,
-            donor: donation.donor,
-            donor_id: donation.donor_id || null,
-            collector: donation.collector || 'You',
-            zone: donation.zone || '-',
-            amount: parseFloat(donation.amount),
-            mode: donation.mode || 'cash',
-            status: donation.status || 'paid',
-            date: new Date().toISOString(),
-        };
-        setDonations(prev => [newDonation, ...prev]);
-        return newDonation;
-    }, [nextReceiptNum]);
-
-    const addHouse = useCallback((house) => {
-        const newHouse = {
-            id: `h-${Date.now()}`,
-            ...house,
-            collected: false,
-        };
-        setHouses(prev => [...prev, newHouse]);
-        return newHouse;
+    const addDonation = useCallback(async (donation) => {
+        try {
+            const payload = {
+                amount: parseFloat(donation.amount),
+                payment_mode: donation.mode || 'cash',
+                donor_id: donation.donor_id || null,
+                status: donation.status || 'paid'
+            };
+            const res = await apiFetch('/api/donations', {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+            if (res.data) {
+                const newDonation = {
+                    ...res.data,
+                    receipt: res.data.receipt_number,
+                    donor: donation.donor,
+                    mode: res.data.payment_mode,
+                    date: res.data.created_at
+                };
+                setDonations(prev => [newDonation, ...prev]);
+                const summaryRes = await apiFetch('/api/dashboard/summary').catch(() => null);
+                if (summaryRes) setDashboardStats(summaryRes);
+                return res.data;
+            }
+        } catch (err) {
+            console.error("Failed to add donation:", err);
+            throw err;
+        }
     }, []);
 
-    const toggleHouseCollected = useCallback((houseId) => {
+    const addHouse = useCallback(async (house) => {
+        try {
+            const payload = {
+                address: house.address,
+                donor_name: house.donor,
+                phone: house.phone,
+                priority: house.priority || 'normal',
+                last_year: house.lastYear || 0,
+                lat: house.lat,
+                lng: house.lng
+            };
+            const res = await apiFetch('/api/houses', {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+            if (res.data) {
+                setHouses(prev => [...prev, {
+                    ...res.data,
+                    collected: res.data.is_collected,
+                    lastYear: res.data.last_year,
+                    donor: res.data.donor_name
+                }]);
+                return res.data;
+            }
+        } catch (err) {
+            console.error("Failed to add house:", err);
+            throw err;
+        }
+    }, []);
+
+    const toggleHouseCollected = useCallback(async (houseId) => {
+        const house = houses.find(h => h.id === houseId);
+        if (!house) return;
+        
+        // Optimistic update
         setHouses(prev => prev.map(h =>
-            h.id === houseId ? { ...h, collected: !h.collected } : h
+            h.id === houseId ? { ...h, is_collected: !h.is_collected } : h
         ));
-    }, []);
+        
+        try {
+            await apiFetch(`/api/houses/${houseId}`, {
+                method: 'PATCH',
+                body: JSON.stringify({ is_collected: !house.is_collected })
+            });
+        } catch (err) {
+            console.error("Failed to toggle house status:", err);
+            // Revert on failure
+            setHouses(prev => prev.map(h =>
+                h.id === houseId ? { ...h, is_collected: house.is_collected } : h
+            ));
+        }
+    }, [houses]);
 
     // ── Computed Values ────────────────────────────────────
-    const stats = useMemo(() => {
-        const totalCollection = donations
-            .filter(d => d.status === 'paid')
-            .reduce((sum, d) => sum + d.amount, 0);
+    
+    // We map the backend dashboardStats to the keys the UI expects
+    const stats = useMemo(() => ({
+        totalCollection: dashboardStats.total_collection,
+        todaysCollection: dashboardStats.today_collection,
+        pendingHouses: dashboardStats.pending_houses,
+        collectedHouses: dashboardStats.collected_houses,
+        totalHouses: dashboardStats.total_houses,
+        activeCollectors: collectors.length, // or fetch active collectors count
+        totalDonations: dashboardStats.total_donations,
+        paymentSplit: paymentSplit,
+    }), [dashboardStats, paymentSplit, collectors]);
 
-        const today = new Date().toDateString();
-        const todaysCollection = donations
-            .filter(d => d.status === 'paid' && new Date(d.date).toDateString() === today)
-            .reduce((sum, d) => sum + d.amount, 0);
-
-        const pendingHouses = houses.filter(h => !h.collected).length;
-        const collectedHouses = houses.filter(h => h.collected).length;
-        const activeCollectors = collectors.filter(c => c.status === 'active').length;
-
-        // Payment split
-        const cashTotal = donations.filter(d => d.mode === 'cash' && d.status === 'paid').reduce((s, d) => s + d.amount, 0);
-        const upiTotal = donations.filter(d => d.mode === 'upi' && d.status === 'paid').reduce((s, d) => s + d.amount, 0);
-        const bankTotal = donations.filter(d => d.mode === 'bank_transfer' && d.status === 'paid').reduce((s, d) => s + d.amount, 0);
-        const total = cashTotal + upiTotal + bankTotal || 1;
-
-        const paymentSplit = [
-            { name: 'Cash', value: Math.round((cashTotal / total) * 100), color: '#D97706' },
-            { name: 'UPI', value: Math.round((upiTotal / total) * 100), color: '#3B82F6' },
-            { name: 'Bank Transfer', value: Math.round((bankTotal / total) * 100), color: '#10B981' },
-        ];
-
-        return {
-            totalCollection,
-            todaysCollection,
-            pendingHouses,
-            collectedHouses,
-            totalHouses: houses.length,
-            activeCollectors,
-            totalDonations: donations.length,
-            paymentSplit,
-        };
-    }, [donations, houses, collectors]);
-
-    // Trend data grouped by date
-    const trendData = useMemo(() => {
-        const grouped = {};
-        donations.filter(d => d.status === 'paid').forEach(d => {
-            const dateKey = new Date(d.date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
-            grouped[dateKey] = (grouped[dateKey] || 0) + d.amount;
-        });
-        return Object.entries(grouped)
-            .map(([date, amount]) => ({ date, amount }))
-            .sort((a, b) => {
-                // Parse the date for proper sorting
-                const parseShort = (s) => {
-                    const parts = s.split(' ');
-                    const months = { Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11 };
-                    return new Date(2026, months[parts[1]] || 0, parseInt(parts[0]));
-                };
-                return parseShort(a.date) - parseShort(b.date);
-            });
-    }, [donations]);
-
-    // Top collectors ranked by collections
-    const collectorRanking = useMemo(() => {
-        const amounts = {};
-        donations.filter(d => d.status === 'paid').forEach(d => {
-            if (d.collector) amounts[d.collector] = (amounts[d.collector] || 0) + d.amount;
-        });
-        return Object.entries(amounts)
-            .map(([name, amount]) => ({ name, amount }))
-            .sort((a, b) => b.amount - a.amount)
-            .slice(0, 5);
-    }, [donations]);
-
-    // Recent donations (latest 5)
+    // Recent donations (latest 5) maps backend schema to frontend expectation
     const recentDonations = useMemo(() => {
-        return [...donations]
-            .sort((a, b) => new Date(b.date) - new Date(a.date))
-            .slice(0, 5)
-            .map(d => ({
-                ...d,
-                time: getRelativeTime(d.date),
-            }));
-    }, [donations]);
+        return donations.slice(0, 5).map(d => ({
+            id: d.id,
+            receipt: d.receipt_number,
+            donor: d.donor_id ? donors.find(x => x.id === d.donor_id)?.full_name : 'Guest',
+            donor_id: d.donor_id,
+            collector: d.collector_id ? 'Collector' : 'You',
+            zone: '-',
+            amount: d.amount,
+            mode: d.payment_mode || 'cash',
+            status: d.status || 'paid',
+            date: d.created_at,
+            time: getRelativeTime(d.created_at),
+        }));
+    }, [donations, donors]);
 
     const value = {
+        isLoadingAppData: loading,
         // Raw data
         donors, donations, houses, collectors,
         // Mutations
@@ -248,6 +276,7 @@ export function AppDataProvider({ children }) {
 
 // ── Helpers ──────────────────────────────────────────────────────
 function getRelativeTime(isoDate) {
+    if (!isoDate) return '-';
     const diff = Date.now() - new Date(isoDate).getTime();
     const mins = Math.floor(diff / 60000);
     if (mins < 1) return 'Just now';
