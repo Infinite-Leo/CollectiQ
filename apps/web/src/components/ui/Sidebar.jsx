@@ -1,4 +1,5 @@
-import { NavLink, Link } from 'react-router-dom';
+import { NavLink, Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import {
     LayoutDashboard, IndianRupee, MapPin, Users,
     Clock, ShieldAlert, BarChart3, Settings, Plus, LogOut
@@ -28,6 +29,16 @@ const navLinks = [
 ];
 
 export default function Sidebar() {
+    const { user, logout } = useAuth();
+    const navigate = useNavigate();
+    const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
+    const displayRole = user?.app_metadata?.role || 'Member';
+
+    const handleLogout = async () => {
+        await logout();
+        navigate('/login');
+    };
+
     return (
         <aside className="sidebar">
             {/* Brand */}
@@ -88,12 +99,12 @@ export default function Sidebar() {
             {/* Footer */}
             <div className="sidebar-footer">
                 <div className="sidebar-user">
-                    <div className="sidebar-user-avatar">👨🏽‍💼</div>
+                    <div className="sidebar-user-avatar">{displayName.charAt(0).toUpperCase()}</div>
                     <div className="sidebar-user-info">
-                        <h4>Arjun Das</h4>
-                        <span>Administrator</span>
+                        <h4>{displayName}</h4>
+                        <span>{displayRole}</span>
                     </div>
-                    <LogOut size={15} style={{ color: 'rgba(212,175,55,0.3)', cursor: 'pointer', marginLeft: 'auto' }} />
+                    <LogOut size={15} style={{ color: 'rgba(212,175,55,0.3)', cursor: 'pointer', marginLeft: 'auto' }} onClick={handleLogout} />
                 </div>
             </div>
         </aside>

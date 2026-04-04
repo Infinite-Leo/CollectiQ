@@ -15,6 +15,7 @@ import donorRoutes from './routes/donors.routes.js';
 import dashboardRoutes from './routes/dashboard.routes.js';
 import fraudRoutes from './routes/fraud.routes.js';
 import auditRoutes from './routes/audit.routes.js';
+import authRoutes from './routes/auth.routes.js';
 import { seedDevData } from './seed.js';
 
 const app = express();
@@ -22,7 +23,13 @@ const PORT = process.env.PORT || 3001;
 
 // ── Global Middleware ────────────────────────────────────────────
 app.use(helmet());
-app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173' }));
+app.use(cors({
+    origin: [
+        process.env.CLIENT_URL || 'http://localhost:5173',
+        'http://127.0.0.1:5173',
+        'http://localhost:5173',
+    ],
+}));
 app.use(express.json({ limit: '1mb' }));
 
 // Rate limiting: 100 requests per 15 minutes per IP
@@ -38,6 +45,9 @@ app.use(rateLimit({
 app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+// ── Public Auth Routes (no JWT required) ─────────────────────────
+app.use('/api/auth', authRoutes);
 
 // ── Auth Middleware (all /api routes below require auth) ─────────
 app.use('/api', auth);

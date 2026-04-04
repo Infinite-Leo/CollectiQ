@@ -1,45 +1,123 @@
-import { useState, useEffect } from 'react';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Loader2, AlertCircle, LogIn, LogOut, UserPlus, XCircle, RefreshCw, Filter } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
+const EVENT_CONFIG = {
+    login:         { label: 'Login',         icon: LogIn,    color: '#1E5C3A', bg: '#E8F5EE', border: 'rgba(30,92,58,0.15)' },
+    signup:        { label: 'Signup',        icon: UserPlus, color: '#4A6FA5', bg: '#E8F0FA', border: 'rgba(74,111,165,0.15)' },
+    logout:        { label: 'Logout',        icon: LogOut,   color: '#7A5A3A', bg: '#FFF8E1', border: 'rgba(122,90,58,0.15)' },
+    login_failed:  { label: 'Failed Login',  icon: XCircle,  color: '#8B1A1A', bg: '#FDE8E8', border: 'rgba(139,26,26,0.15)' },
+    signup_failed: { label: 'Failed Signup', icon: XCircle,  color: '#8B1A1A', bg: '#FDE8E8', border: 'rgba(139,26,26,0.15)' },
+};
+
+function getRelativeTime(iso) {
+    const diff = Date.now() - new Date(iso).getTime();
+    const secs = Math.floor(diff / 1000);
+    if (secs < 60) return 'Just now';
+    const mins = Math.floor(secs / 60);
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    const days = Math.floor(hrs / 24);
+    return `${days}d ago`;
+}
+
+function parseBrowser(ua) {
+    if (!ua) return 'Unknown';
+    if (ua.includes('Chrome') && !ua.includes('Edg')) return 'Chrome';
+    if (ua.includes('Edg')) return 'Edge';
+    if (ua.includes('Firefox')) return 'Firefox';
+    if (ua.includes('Safari') && !ua.includes('Chrome')) return 'Safari';
+    return 'Other';
+}
 
 export default function AuditLog() {
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [page, setPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
+    const [filter, setFilter] = useState('all');
+    const { getAccessToken } = useAuth();
 
-    useEffect(() => {
-        fetchLogs();
-    }, [page]);
-
-    const fetchLogs = async () => {
+    const fetchLogs = useCallback(async () => {
         setLoading(true);
+        setError(null);
         try {
-            const res = await fetch(`/api/audit?page=${page}`);
-            if (!res.ok) {
-                if (res.status === 403) throw new Error('Access denied. President/Secretary only.');
-                throw new Error('Failed to fetch logs');
-            }
-            const { data, total, limit } = await res.json();
+            const token = await getAccessToken();
+            const typeParam = filter !== 'all' ? `&type=${filter}` : '';
+            const res = await fetch(`${API_BASE}/api/auth/logs?limit=100${typeParam}`, {
+                headers: token ? { Authorization: `Bearer ${token}` } : {},
+            });
+            if (!res.ok) throw new Error('Failed to fetch auth logs');
+            const { data } = await res.json();
             setLogs(data);
-            setTotalPages(Math.ceil(total / limit));
         } catch (err) {
             console.error(err);
             setError(err.message);
         } finally {
             setLoading(false);
         }
-    };
+    }, [filter, getAccessToken]);
+
+    useEffect(() => {
+        fetchLogs();
+    }, [fetchLogs]);
+
+    // Auto-refresh every 30s
+    useEffect(() => {
+        const interval = setInterval(fetchLogs, 30000);
+        return () => clearInterval(interval);
+    }, [fetchLogs]);
+
+    const filterOptions = [
+        { value: 'all', label: 'All Events' },
+        { value: 'login', label: 'Logins' },
+        { value: 'signup', label: 'Signups' },
+        { value: 'logout', label: 'Logouts' },
+        { value: 'login_failed', label: 'Failed' },
+    ];
 
     return (
-        <div className="page-body">
-            <div className="card-header" style={{ border: 'none', padding: '0 0 var(--space-6) 0', background: 'transparent' }}>
+        <div>
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '24px' }}>
                 <div>
-                    <h2 style={{ fontFamily: 'Playfair Display', fontSize: '1.25rem', fontWeight: 700, color: '#2C1A0E' }}>Audit Log</h2>
-                    <p style={{ fontFamily: 'Sora', fontSize: '0.875rem', color: '#7A5A3A', marginTop: '4px' }}>
-                        Track system activities and changes.
+                    <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                        Audit Log
+                    </h2>
+                    <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                        Track who is logging in and out of the system.
                     </p>
                 </div>
+                <button
+                    className="btn btn-secondary"
+                    onClick={fetchLogs}
+                    style={{ gap: '6px', height: '36px', fontSize: '0.8125rem' }}
+                >
+                    <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+                    Refresh
+                </button>
+            </div>
+
+            {/* Filters */}
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
+                {filterOptions.map(opt => (
+                    <button
+                        key={opt.value}
+                        className={`btn ${filter === opt.value ? 'btn-primary' : 'btn-ghost'}`}
+                        onClick={() => setFilter(opt.value)}
+                        style={{
+                            height: '32px',
+                            fontSize: '0.75rem',
+                            fontWeight: 600,
+                            padding: '0 14px',
+                            borderRadius: 'var(--radius-full)',
+                        }}
+                    >
+                        {opt.label}
+                    </button>
+                ))}
             </div>
 
             {error && (
@@ -51,91 +129,110 @@ export default function AuditLog() {
                     color: 'var(--color-error)',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 'var(--space-2)'
+                    gap: 'var(--space-2)',
                 }}>
                     <AlertCircle size={18} />
                     {error}
                 </div>
             )}
 
+            {/* Events list */}
             <div className="card">
-                <div className="table-wrapper">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Timestamp</th>
-                                <th>User</th>
-                                <th>Action</th>
-                                <th>Entity</th>
-                                <th>Details</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {loading ? (
-                                <tr>
-                                    <td colSpan="5" style={{ padding: 'var(--space-8)', textAlign: 'center', color: 'var(--text-muted)' }}>
-                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-2)' }}>
-                                            <Loader2 size={24} className="animate-spin" />
-                                            <span>Loading logs...</span>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ) : logs.length === 0 ? (
-                                <tr>
-                                    <td colSpan="5" style={{ padding: 'var(--space-8)', textAlign: 'center', color: 'var(--text-muted)' }}>
-                                        No activity recorded yet.
-                                    </td>
-                                </tr>
-                            ) : (
-                                logs.map((log) => (
-                                    <tr key={log.id}>
-                                        <td style={{ color: 'var(--text-secondary)', fontSize: '0.8125rem' }}>
-                                            {new Date(log.created_at).toLocaleString()}
-                                        </td>
-                                        <td>
-                                            <div style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{log.users?.full_name || 'System'}</div>
-                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{log.users?.role}</div>
-                                        </td>
-                                        <td>
-                                            <span className={`badge ${log.action === 'INSERT' ? 'badge-active' :
-                                                log.action === 'DELETE' ? 'badge-closed' : 'badge-draft'
-                                                }`}>
-                                                {log.action}
-                                            </span>
-                                        </td>
-                                        <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                                            {log.table_name}
-                                        </td>
-                                        <td style={{ maxWidth: '300px', fontSize: '0.75rem', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                            {JSON.stringify(log.new_data || log.old_data)}
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+                {loading ? (
+                    <div style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                        <Loader2 size={24} className="animate-spin" style={{ margin: '0 auto 8px' }} />
+                        <div>Loading auth logs…</div>
+                    </div>
+                ) : logs.length === 0 ? (
+                    <div style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                        <LogIn size={32} style={{ margin: '0 auto 12px', opacity: 0.3 }} />
+                        <div style={{ fontSize: '0.875rem', fontWeight: 500 }}>No auth events recorded yet</div>
+                        <div style={{ fontSize: '0.8125rem', marginTop: '4px' }}>
+                            Events will appear here as users log in and out.
+                        </div>
+                    </div>
+                ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        {logs.map((log, i) => {
+                            const config = EVENT_CONFIG[log.type] || EVENT_CONFIG.login;
+                            const Icon = config.icon;
+                            return (
+                                <div
+                                    key={log.id}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '14px',
+                                        padding: '14px 20px',
+                                        borderBottom: i < logs.length - 1 ? '1px solid var(--border-light)' : 'none',
+                                        transition: 'background 0.15s',
+                                        animation: `fadeInUp 0.3s ease ${i * 0.03}s both`,
+                                    }}
+                                    onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-surface-hover)'}
+                                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                >
+                                    {/* Icon */}
+                                    <div style={{
+                                        width: '36px',
+                                        height: '36px',
+                                        borderRadius: '10px',
+                                        background: config.bg,
+                                        border: `1px solid ${config.border}`,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        flexShrink: 0,
+                                    }}>
+                                        <Icon size={16} color={config.color} />
+                                    </div>
 
-                {/* Pagination */}
-                {!loading && logs.length > 0 && (
-                    <div style={{ padding: 'var(--space-4)', borderTop: '1px solid var(--border-light)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <button
-                            disabled={page === 1}
-                            onClick={() => setPage(p => p - 1)}
-                            className="btn btn-secondary"
-                            style={{ height: '32px', fontSize: '0.75rem' }}
-                        >
-                            Previous
-                        </button>
-                        <span style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>Page {page} of {totalPages}</span>
-                        <button
-                            disabled={page === totalPages}
-                            onClick={() => setPage(p => p + 1)}
-                            className="btn btn-secondary"
-                            style={{ height: '32px', fontSize: '0.75rem' }}
-                        >
-                            Next
-                        </button>
+                                    {/* Info */}
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
+                                            <span style={{
+                                                fontWeight: 600,
+                                                fontSize: '0.8125rem',
+                                                color: 'var(--text-primary)',
+                                            }}>
+                                                {log.full_name || log.email?.split('@')[0] || 'Unknown'}
+                                            </span>
+                                            <span style={{
+                                                fontSize: '0.6875rem',
+                                                fontWeight: 600,
+                                                padding: '1px 8px',
+                                                borderRadius: 'var(--radius-full)',
+                                                background: config.bg,
+                                                color: config.color,
+                                                border: `1px solid ${config.border}`,
+                                            }}>
+                                                {config.label}
+                                            </span>
+                                        </div>
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                                            <span>{log.email}</span>
+                                            <span style={{ opacity: 0.5 }}>•</span>
+                                            <span>{parseBrowser(log.user_agent)}</span>
+                                            {log.ip && log.ip !== '::1' && (
+                                                <>
+                                                    <span style={{ opacity: 0.5 }}>•</span>
+                                                    <span>IP: {log.ip}</span>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Time */}
+                                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                                        <div style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-secondary)' }}>
+                                            {getRelativeTime(log.created_at)}
+                                        </div>
+                                        <div style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                                            {new Date(log.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
                 )}
             </div>

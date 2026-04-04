@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Bell, Search, ChevronDown, User, Settings, LogOut, ShieldAlert, AlertTriangle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 const notifications = [
     { id: 1, title: 'New Fraud Flag', desc: 'GPS anomaly detected for Ravi Kumar', time: '2 min ago', type: 'warning' },
@@ -16,6 +17,11 @@ export default function Header() {
     const notifRef = useRef(null);
     const userRef = useRef(null);
     const navigate = useNavigate();
+    const { user, logout } = useAuth();
+
+    const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
+    const displayRole = user?.app_metadata?.role || 'Member';
+    const initials = displayName.charAt(0).toUpperCase();
 
     // Close dropdowns on outside click
     useEffect(() => {
@@ -173,8 +179,8 @@ export default function Header() {
                     {showUserMenu && (
                         <div className="dropdown-panel" style={{ width: '220px' }}>
                             <div style={{ padding: 'var(--space-3) var(--space-4)', borderBottom: '1px solid var(--border-light)' }}>
-                                <div style={{ fontWeight: 600, fontSize: '0.875rem', fontFamily: 'var(--font-heading)' }}>Arjun Das</div>
-                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Administrator</div>
+                                <div style={{ fontWeight: 600, fontSize: '0.875rem', fontFamily: 'var(--font-heading)' }}>{displayName}</div>
+                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{displayRole}</div>
                             </div>
                             <div className="dropdown-panel-body">
                                 <Link to="/settings" className="dropdown-item" onClick={() => setShowUserMenu(false)}>
@@ -187,7 +193,7 @@ export default function Header() {
                                 <button
                                     className="dropdown-item"
                                     style={{ width: '100%', border: 'none', background: 'none', cursor: 'pointer', color: '#8B1A1A' }}
-                                    onClick={() => { setShowUserMenu(false); }}
+                                    onClick={async () => { setShowUserMenu(false); await logout(); navigate('/login'); }}
                                 >
                                     <LogOut size={16} /> Sign Out
                                 </button>
