@@ -19,7 +19,7 @@ router.get('/', async (req, res, next) => {
 
         if (event_id) query = query.eq('event_id', event_id);
         if (zone_id) query = query.eq('zone_id', zone_id);
-        if (is_collected !== undefined) query = query.eq('is_collected', is_collected === 'true');
+        if (is_collected !== undefined) query = query.eq('is_collected', is_collected === true || is_collected === 'true');
         if (priority) query = query.eq('priority', priority);
 
         const { data, error, count } = await query;

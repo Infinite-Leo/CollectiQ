@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ArrowLeft, MapPin, User, Phone, Receipt, CheckCircle, Loader2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAppData } from '../context/AppDataContext';
+import { PAYMENT_MODES, PAYMENT_STATUSES, PAYMENT_MODE_OPTIONS, PAYMENT_STATUS_OPTIONS } from '../constants/paymentModes';
 
 const C = {
     saffron: '#C97B2A',
@@ -26,8 +27,8 @@ export default function DonationEntry() {
         donor_name: '',
         phone: '',
         amount: '500',
-        payment_mode: 'cash',
-        payment_status: 'paid',
+        payment_mode: PAYMENT_MODES.CASH,
+        payment_status: PAYMENT_STATUSES.PAID,
         notes: '',
     });
 
@@ -70,7 +71,7 @@ export default function DonationEntry() {
     }
 
     const resetForm = () => {
-        setForm({ donor_name: '', phone: '', amount: '500', payment_mode: 'cash', payment_status: 'paid', notes: '' });
+        setForm({ donor_name: '', phone: '', amount: '500', payment_mode: PAYMENT_MODES.CASH, payment_status: PAYMENT_STATUSES.PAID, notes: '' });
         setStatus('idle');
         setReceipt(null);
     };
@@ -82,7 +83,7 @@ export default function DonationEntry() {
                 <div style={{ fontSize: 72, marginBottom: 8 }}>🎊</div>
                 <h2 style={{ fontFamily: 'Playfair Display', fontSize: 28, color: C.warmText, margin: 0 }}>Donation Recorded!</h2>
                 <p style={{ fontFamily: 'Sora', fontSize: 14, color: C.mutedText, margin: 0 }}>
-                    {form.donor_name || 'Donor'} · {fmt(parseInt(form.amount) || 0)} · {form.payment_mode === 'cash' ? 'Cash' : 'Online'}
+                    {form.donor_name || 'Donor'} · {fmt(parseInt(form.amount) || 0)} · {form.payment_mode === PAYMENT_MODES.CASH ? 'Cash' : 'Online'}
                 </p>
                 <p style={{ fontFamily: 'Sora', fontSize: 13, color: C.mutedText, margin: '0 0 8px' }}>
                     Receipt: <strong>{receipt}</strong> · 📱 SMS receipt will be sent
@@ -207,11 +208,7 @@ export default function DonationEntry() {
                                 <div className="form-group">
                                     <label className="form-label">Payment Mode</label>
                                     <div className="toggle-group">
-                                        {[
-                                            { value: 'cash', label: '💵 Cash' },
-                                            { value: 'upi', label: '📱 Online' },
-                                            { value: 'cheque', label: '🏦 Cheque' },
-                                        ].map((mode) => (
+                                        {PAYMENT_MODE_OPTIONS.map((mode) => (
                                             <button
                                                 key={mode.value}
                                                 type="button"
@@ -227,10 +224,7 @@ export default function DonationEntry() {
                                 <div className="form-group">
                                     <label className="form-label">Payment Status</label>
                                     <div className="toggle-group">
-                                        {[
-                                            { value: 'paid', label: '✅ Paid' },
-                                            { value: 'due', label: '⏳ Due' },
-                                        ].map((s) => (
+                                        {PAYMENT_STATUS_OPTIONS.map((s) => (
                                             <button
                                                 key={s.value}
                                                 type="button"
@@ -238,13 +232,13 @@ export default function DonationEntry() {
                                                 onClick={() => setForm((p) => ({ ...p, payment_status: s.value }))}
                                                 style={{
                                                     borderColor: form.payment_status === s.value
-                                                        ? (s.value === 'paid' ? C.forest : C.crimson)
+                                                        ? (s.value === PAYMENT_STATUSES.PAID ? C.forest : C.crimson)
                                                         : undefined,
                                                     color: form.payment_status === s.value
-                                                        ? (s.value === 'paid' ? C.forest : C.crimson)
+                                                        ? (s.value === PAYMENT_STATUSES.PAID ? C.forest : C.crimson)
                                                         : undefined,
                                                     background: form.payment_status === s.value
-                                                        ? (s.value === 'paid' ? `${C.forest}12` : `${C.crimson}12`)
+                                                        ? (s.value === PAYMENT_STATUSES.PAID ? `${C.forest}12` : `${C.crimson}12`)
                                                         : undefined,
                                                 }}
                                             >

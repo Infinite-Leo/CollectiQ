@@ -1,6 +1,9 @@
 import { supabase } from '../config/supabase';
 
-const API_BASE = import.meta.env.VITE_API_URL || '';
+// In production (Vercel), API calls are proxied via vercel.json rewrite rules
+// In development, fall back to localhost:3001 if vite proxy isn't available
+const API_BASE = import.meta.env.VITE_API_URL ||
+    (import.meta.env.PROD ? '' : 'http://localhost:3001');
 
 /**
  * Wrapper around fetch that auto-injects the Supabase JWT.
@@ -19,7 +22,9 @@ export async function apiFetch(path, options = {}) {
         headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const res = await fetch(`${API_BASE}${path}`, {
+    const url = `${API_BASE}${path}`;
+
+    const res = await fetch(url, {
         ...options,
         headers,
     });

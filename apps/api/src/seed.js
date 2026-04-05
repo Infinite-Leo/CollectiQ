@@ -7,10 +7,20 @@ export const DEV_EVENT_ID = 'b2c3d4e5-f6a7-8901-bcde-f12345678901';
 /**
  * Seeds the database with initial data if it doesn't exist.
  * Called once at startup.
+ *
+ * In production: Skipped (DB should already be seeded)
+ * In development: Creates seed data if DB is empty
  */
 export async function seedDevData() {
+    // Skip seeding if no Supabase configured
     if (!process.env.SUPABASE_URL) {
         console.log('⚠️  Skipping DB seed — no Supabase URL configured');
+        return;
+    }
+
+    // Skip seeding in production to avoid re-initializing data
+    if (process.env.NODE_ENV === 'production') {
+        console.log('ℹ️  Production mode: skipping seed (database pre-initialized)');
         return;
     }
 
@@ -39,7 +49,6 @@ export async function seedDevData() {
                     phone: '9876543210',
                 }, { onConflict: 'id' });
 
-
             if (clubErr) {
                 console.error('❌ Failed to seed club:', clubErr.message);
                 return;
@@ -66,9 +75,10 @@ export async function seedDevData() {
 
             console.log('✅ Development data seeded: Club + Event created');
         } else {
-            console.log('✅ Dev club already exists');
+            console.log('✅ Dev club already exists - skipping seed');
         }
     } catch (err) {
         console.error('❌ Seed error:', err.message);
+        // Don't crash server on seed failure
     }
 }

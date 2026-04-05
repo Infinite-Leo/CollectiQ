@@ -3,8 +3,18 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-if (!supabaseUrl || !supabaseServiceKey) {
-    console.warn('⚠️  Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY — running in mock mode');
+// In production, fail hard if credentials are missing
+if (process.env.NODE_ENV === 'production') {
+    if (!supabaseUrl || !supabaseServiceKey) {
+        console.error('🚨 FATAL: Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in production!');
+        console.error('Please set these environment variables in Railway dashboard.');
+        process.exit(1);
+    }
+} else {
+    // In development, warn but allow fallback
+    if (!supabaseUrl || !supabaseServiceKey) {
+        console.warn('⚠️  Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY — using local fallback (mocking disabled)');
+    }
 }
 
 /**

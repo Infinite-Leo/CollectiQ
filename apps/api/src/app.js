@@ -25,12 +25,18 @@ const PORT = process.env.PORT || 3001;
 app.use(helmet());
 app.use(cors({
     origin: [
-        process.env.CLIENT_URL || 'http://localhost:5173',
+        // Production
         'https://collecti-q-web.vercel.app',
-        'http://127.0.0.1:5173',
+
+        // Development / Local
+        process.env.CLIENT_URL || 'http://localhost:5173',
         'http://localhost:5173',
         'http://localhost:3000',
         'http://localhost:3002',
+        'http://127.0.0.1:5173',
+
+        // Allow the Railway API domain itself (for same-origin requests from updated frontend)
+        'https://collectiq-api-production.up.railway.app',
     ],
     credentials: true,
 }));

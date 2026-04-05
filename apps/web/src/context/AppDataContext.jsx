@@ -30,11 +30,7 @@ export function AppDataProvider({ children }) {
     });
     
     const [trendData, setTrendData] = useState([]);
-    const [paymentSplit, setPaymentSplit] = useState([
-        { name: 'Cash', value: 33, color: '#D97706' },
-        { name: 'UPI', value: 33, color: '#3B82F6' },
-        { name: 'Bank Transfer', value: 33, color: '#10B981' }
-    ]);
+    const [paymentSplit, setPaymentSplit] = useState([]);
     const [collectorRanking, setCollectorRanking] = useState([]);
     
     const [loading, setLoading] = useState(true);
@@ -206,16 +202,18 @@ export function AppDataProvider({ children }) {
     const toggleHouseCollected = useCallback(async (houseId) => {
         const house = houses.find(h => h.id === houseId);
         if (!house) return;
-        
+
+        const newCollectedState = !house.is_collected;
+
         // Optimistic update
         setHouses(prev => prev.map(h =>
-            h.id === houseId ? { ...h, is_collected: !h.is_collected } : h
+            h.id === houseId ? { ...h, is_collected: newCollectedState } : h
         ));
-        
+
         try {
             await apiFetch(`/api/houses/${houseId}`, {
                 method: 'PATCH',
-                body: JSON.stringify({ is_collected: !house.collected })
+                body: JSON.stringify({ is_collected: newCollectedState })
             });
         } catch (err) {
             console.error("Failed to toggle house status:", err);

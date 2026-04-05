@@ -8,10 +8,12 @@ export async function auth(req, res, next) {
     try {
         const authHeader = req.headers.authorization;
 
-        // Development bypass — if no token provided and not in production, use mock user
-        if (!authHeader?.startsWith('Bearer ') && process.env.NODE_ENV !== 'production') {
+        // Development bypass — if no token provided and running locally, use mock user
+        const isDevelopment = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'dev';
+        if (!authHeader?.startsWith('Bearer ') && isDevelopment) {
             // Fixed UUID matching seed.js DEV_CLUB_ID
             const devClubId = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+            console.log('ℹ️  Development mode: Using mock user (no token provided)');
             req.user = {
                 id: 'dev-user-id',
                 email: 'president@durganagar.com',

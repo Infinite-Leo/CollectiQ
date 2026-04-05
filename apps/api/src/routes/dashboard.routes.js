@@ -17,7 +17,7 @@ router.get('/summary', async (req, res, next) => {
                 p_club_id: req.clubId,
                 p_event_id: eventId,
             });
-        if (totalErr) console.error('total_collection RPC error:', totalErr);
+        if (totalErr) throw totalErr;
 
         // Today's collection
         const { data: todayData, error: todayErr } = await supabase
@@ -25,7 +25,7 @@ router.get('/summary', async (req, res, next) => {
                 p_club_id: req.clubId,
                 p_event_id: eventId,
             });
-        if (todayErr) console.error('today_collection RPC error:', todayErr);
+        if (todayErr) throw todayErr;
 
         // Pending houses
         let houseQuery = supabase

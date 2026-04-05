@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { createUserClient, supabaseAdmin } from '../config/supabase.js';
 import { roleGuard } from '../middleware/auth.js';
+import { PAYMENT_MODES, PAYMENT_STATUSES } from '../constants/paymentModes.js';
 
 const router = Router();
 
@@ -55,8 +56,8 @@ router.post('/', roleGuard(['president', 'secretary', 'collector', 'owner']), as
                 zone_id: zone_id || null,
                 house_id: house_id || null,
                 amount,
-                payment_mode: payment_mode || 'cash',
-                payment_status: payment_status || 'paid',
+                payment_mode: payment_mode || PAYMENT_MODES.CASH,
+                payment_status: payment_status || PAYMENT_STATUSES.PAID,
                 receipt_number,
                 idempotency_key: idempotency_key || null,
                 notes: notes || null,
