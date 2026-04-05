@@ -93,9 +93,8 @@ router.get('/', async (req, res, next) => {
     try {
         const { event_id, payment_status, payment_mode, collector_id, page = 1, limit = 50 } = req.query;
 
-        const supabase = req.accessToken ? createUserClient(req.accessToken) : supabaseAdmin;
-
-        let query = supabase
+        // Use admin client to bypass RLS — auth is already enforced by middleware
+        let query = supabaseAdmin
             .from('donations')
             .select('*, donors(full_name), users!collector_id(full_name)', { count: 'exact' })
             .eq('club_id', req.clubId)
