@@ -79,11 +79,60 @@ function ChartTooltip({ active, payload, label }) {
 // ── Dashboard ────────────────────────────────────────────────────
 export default function Dashboard() {
     const {
-        stats, trendData, collectorRanking, recentDonations,
+        stats, trendData, collectorRanking, recentDonations, isLoadingAppData,
     } = useAppData();
 
     const [isDonationModalOpen, setIsDonationModalOpen] = useState(false);
     const [chartRange, setChartRange] = useState('7D');
+
+    if (isLoadingAppData) {
+        return (
+            <>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                    <div>
+                        <h2 style={{ fontFamily: 'Playfair Display', fontSize: '1.375rem', fontWeight: 700, color: '#2C1A0E' }}>Dashboard</h2>
+                        <div className="skeleton skeleton-text" style={{ width: '220px', height: '14px', marginTop: '6px' }} />
+                    </div>
+                </div>
+
+                <div className="kpi-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)', marginBottom: '24px' }}>
+                    {Array.from({ length: 4 }).map((_, idx) => (
+                        <div key={`kpi-skeleton-${idx}`} className="kpi-card">
+                            <div className="kpi-icon"><div className="skeleton" style={{ width: '20px', height: '20px', borderRadius: '999px' }} /></div>
+                            <div className="kpi-content">
+                                <div className="kpi-label"><div className="skeleton skeleton-text" style={{ width: '80px' }} /></div>
+                                <div className="kpi-value"><div className="skeleton skeleton-text" style={{ width: '120px', height: '18px' }} /></div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 'var(--space-4)', marginBottom: '24px' }}>
+                    <div className="card" style={{ padding: '20px' }}>
+                        <div className="skeleton" style={{ height: '240px' }} />
+                    </div>
+                    <div className="card" style={{ padding: '20px' }}>
+                        <div className="skeleton" style={{ height: '240px' }} />
+                    </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)' }}>
+                    <div className="card" style={{ padding: '20px' }}>
+                        <div className="skeleton skeleton-text" style={{ width: '160px', marginBottom: '12px' }} />
+                        {Array.from({ length: 5 }).map((_, idx) => (
+                            <div key={`recent-skeleton-${idx}`} className="skeleton skeleton-text" style={{ width: '100%', height: '12px', marginBottom: '10px' }} />
+                        ))}
+                    </div>
+                    <div className="card" style={{ padding: '20px' }}>
+                        <div className="skeleton skeleton-text" style={{ width: '160px', marginBottom: '12px' }} />
+                        {Array.from({ length: 5 }).map((_, idx) => (
+                            <div key={`ranking-skeleton-${idx}`} className="skeleton skeleton-text" style={{ width: '100%', height: '12px', marginBottom: '10px' }} />
+                        ))}
+                    </div>
+                </div>
+            </>
+        );
+    }
 
     const kpiData = useMemo(() => [
         {

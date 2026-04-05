@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ShieldAlert, AlertTriangle, Eye, CheckCircle, XCircle, Search } from 'lucide-react';
 import { useToast } from '../components/ui/Toast';
 import Modal from '../components/Modal';
+import { useAppData } from '../context/AppDataContext';
 
 const initialFraudFlags = [
     { id: 1, type: 'GPS Anomaly', description: 'Collection location 2.4km from house address', severity: 'high', collector: 'Ravi Kumar', receipt: 'DNC-DP26-000238', amount: 5000, status: 'open', time: '1 hr ago' },
@@ -28,6 +29,7 @@ function statusBadge(status) {
 export default function FraudFlags() {
     const [flags, setFlags] = useState(initialFraudFlags);
     const [confirmAction, setConfirmAction] = useState(null);
+    const { isLoadingAppData } = useAppData();
     const toast = useToast();
 
     const updateStatus = (id, newStatus) => {
@@ -89,19 +91,30 @@ export default function FraudFlags() {
 
             {/* Summary KPIs */}
             <div className="kpi-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)', marginBottom: '24px' }}>
-                {[
-                    { label: 'Open', value: flags.filter(f => f.status === 'open').length, accent: 'error' },
-                    { label: 'Investigating', value: flags.filter(f => f.status === 'investigating').length, accent: 'gold' },
-                    { label: 'Resolved', value: flags.filter(f => f.status === 'resolved').length, accent: 'green' },
-                    { label: 'Dismissed', value: flags.filter(f => f.status === 'dismissed').length, accent: 'saffron' },
-                ].map((s) => (
-                    <div key={s.label} className={`kpi-card ${s.accent}`}>
-                        <div className="kpi-content">
-                            <div className="kpi-label">{s.label}</div>
-                            <div className="kpi-value">{s.value}</div>
+                {isLoadingAppData ? (
+                    Array.from({ length: 4 }).map((_, idx) => (
+                        <div key={`fraud-kpi-skeleton-${idx}`} className="kpi-card">
+                            <div className="kpi-content">
+                                <div className="kpi-label"><div className="skeleton skeleton-text" style={{ width: '70px' }} /></div>
+                                <div className="kpi-value"><div className="skeleton skeleton-text" style={{ width: '40px', height: '18px' }} /></div>
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    ))
+                ) : (
+                    [
+                        { label: 'Open', value: flags.filter(f => f.status === 'open').length, accent: 'error' },
+                        { label: 'Investigating', value: flags.filter(f => f.status === 'investigating').length, accent: 'gold' },
+                        { label: 'Resolved', value: flags.filter(f => f.status === 'resolved').length, accent: 'green' },
+                        { label: 'Dismissed', value: flags.filter(f => f.status === 'dismissed').length, accent: 'saffron' },
+                    ].map((s) => (
+                        <div key={s.label} className={`kpi-card ${s.accent}`}>
+                            <div className="kpi-content">
+                                <div className="kpi-label">{s.label}</div>
+                                <div className="kpi-value">{s.value}</div>
+                            </div>
+                        </div>
+                    ))
+                )}
             </div>
 
             {/* Flags Table */}
@@ -122,7 +135,21 @@ export default function FraudFlags() {
                             </tr>
                         </thead>
                         <tbody>
-                            {flags.map((f) => (
+                            {isLoadingAppData ? (
+                                Array.from({ length: 6 }).map((_, idx) => (
+                                    <tr key={`fraud-skeleton-${idx}`}>
+                                        <td><div className="skeleton skeleton-text" style={{ width: '70px' }} /></td>
+                                        <td><div className="skeleton skeleton-text" style={{ width: '90px' }} /></td>
+                                        <td><div className="skeleton skeleton-text" style={{ width: '180px' }} /></td>
+                                        <td><div className="skeleton skeleton-text" style={{ width: '110px' }} /></td>
+                                        <td><div className="skeleton skeleton-text" style={{ width: '90px' }} /></td>
+                                        <td style={{ textAlign: 'right' }}><div className="skeleton skeleton-text" style={{ width: '60px', marginLeft: 'auto' }} /></td>
+                                        <td><div className="skeleton skeleton-text" style={{ width: '80px' }} /></td>
+                                        <td><div className="skeleton skeleton-text" style={{ width: '80px' }} /></td>
+                                        <td><div className="skeleton skeleton-text" style={{ width: '40px' }} /></td>
+                                    </tr>
+                                ))
+                            ) : flags.map((f) => (
                                 <tr key={f.id} style={{ background: f.status === 'open' && f.severity === 'high' ? 'var(--color-error-light)' : undefined }}>
                                     <td>
                                         <span className={`badge badge-${f.severity}`}>

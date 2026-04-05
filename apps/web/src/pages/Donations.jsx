@@ -24,7 +24,7 @@ function exportCSV(data) {
 }
 
 export default function Donations() {
-    const { donations } = useAppData();
+    const { donations, isLoadingAppData } = useAppData();
     const [filter, setFilter] = useState('all');
     const [search, setSearch] = useState('');
     const [showFilters, setShowFilters] = useState(false);
@@ -117,7 +117,13 @@ export default function Donations() {
                 <div>
                     <h2 style={{ fontFamily: 'Playfair Display', fontSize: '1.375rem', fontWeight: 700, color: '#2C1A0E' }}>Donations</h2>
                     <p style={{ fontFamily: 'Sora', fontSize: '0.875rem', color: '#7A5A3A', marginTop: '4px' }}>
-                        {filtered.length} donations · ₹{filtered.reduce((s, d) => s + d.amount, 0).toLocaleString('en-IN')} collected
+                        {isLoadingAppData ? (
+                            <span className="skeleton skeleton-text" style={{ display: 'inline-block', width: '220px', height: '14px' }} />
+                        ) : (
+                            <>
+                                {filtered.length} donations · ₹{filtered.reduce((s, d) => s + d.amount, 0).toLocaleString('en-IN')} collected
+                            </>
+                        )}
                     </p>
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
@@ -179,7 +185,7 @@ export default function Donations() {
                 </div>
 
                 {/* Advanced Filters */}
-                {showFilters && (
+                {showFilters && !isLoadingAppData && (
                     <div className="filter-panel">
                         <div className="form-group">
                             <label className="form-label">Zone</label>
@@ -231,7 +237,21 @@ export default function Donations() {
                             </tr>
                         </thead>
                         <tbody>
-                            {filtered.length === 0 ? (
+                            {isLoadingAppData ? (
+                                Array.from({ length: 6 }).map((_, idx) => (
+                                    <tr key={`donation-skeleton-${idx}`}>
+                                        <td><div className="skeleton skeleton-text" style={{ width: '90px' }} /></td>
+                                        <td><div className="skeleton skeleton-text" style={{ width: '120px' }} /></td>
+                                        <td><div className="skeleton skeleton-text" style={{ width: '120px' }} /></td>
+                                        <td><div className="skeleton skeleton-text" style={{ width: '70px' }} /></td>
+                                        <td style={{ textAlign: 'right' }}><div className="skeleton skeleton-text" style={{ width: '70px', marginLeft: 'auto' }} /></td>
+                                        <td><div className="skeleton skeleton-text" style={{ width: '50px' }} /></td>
+                                        <td><div className="skeleton skeleton-text" style={{ width: '50px' }} /></td>
+                                        <td><div className="skeleton skeleton-text" style={{ width: '130px' }} /></td>
+                                        <td><div className="skeleton skeleton-text" style={{ width: '30px' }} /></td>
+                                    </tr>
+                                ))
+                            ) : filtered.length === 0 ? (
                                 <tr>
                                     <td colSpan="9" className="empty-state">
                                         <p>No donations match your filters</p>

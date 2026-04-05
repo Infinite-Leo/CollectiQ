@@ -3,15 +3,67 @@ import { Users, TrendingUp, AlertCircle, Clock, Star, ChevronRight } from 'lucid
 import Modal from '../components/Modal';
 import { useAppData } from '../context/AppDataContext';
 
+function getRelativeTime(isoDate) {
+    if (!isoDate) return '-';
+    const diff = Date.now() - new Date(isoDate).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'Just now';
+    if (mins < 60) return `${mins} min ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs} hr ago`;
+    const days = Math.floor(hrs / 24);
+    return `${days} day${days > 1 ? 's' : ''} ago`;
+}
+
 export default function Collectors() {
-    const { collectors, donations } = useAppData();
+    const { collectors, donations, isLoadingAppData } = useAppData();
     const [selected, setSelected] = useState(null);
+
+    const derivedCollectors = useMemo(() => {
+        const map = new Map();
+        donations.forEach((d) => {
+            const name = (d.collector || '').trim();
+            if (!name || name === '-' || name === 'Collector') return;
+            const date = d.date || d.created_at || null;
+            const entry = map.get(name) || {
+                id: name,
+                name,
+                phone: '-',
+                status: 'active',
+                since: '-',
+                zone: d.zone || 'Unassigned',
+                lastDonationAt: date,
+            };
+            if (!entry.zone || entry.zone === 'Unassigned') {
+                entry.zone = d.zone || entry.zone;
+            }
+            if (date && (!entry.lastDonationAt || new Date(date) > new Date(entry.lastDonationAt))) {
+                entry.lastDonationAt = date;
+            }
+            map.set(name, entry);
+        });
+        return Array.from(map.values());
+    }, [donations]);
+
+    const collectorByName = useMemo(() => {
+        const map = new Map();
+        collectors.forEach((c) => {
+            map.set((c.name || '').trim().toLowerCase(), c);
+        });
+        return map;
+    }, [collectors]);
 
     // Compute live stats for each collector
     const collectorsWithStats = useMemo(() => {
-        return collectors.map(c => {
+        return derivedCollectors.map(c => {
+            const matchingCollector = collectorByName.get((c.name || '').trim().toLowerCase());
+            const mergedCollector = {
+                ...c,
+                ...matchingCollector,
+                name: matchingCollector?.name || c.name,
+            };
             const collectorDonations = donations.filter(d =>
-                d.collector === c.name || (d.collector === 'You' && c.name === 'Ravi Kumar') // Assuming 'You' is Ravi for demo
+                d.collector_id === mergedCollector.id || d.collector === mergedCollector.name
             );
 
             const totalCollected = collectorDonations
@@ -23,17 +75,24 @@ export default function Collectors() {
                 .reduce((sum, d) => sum + d.amount, 0);
 
             const count = collectorDonations.length;
-            const lastActive = 'Just now'; // Simplified for demo
+            const lastDonationAt = collectorDonations
+                .map(d => d.date || d.created_at)
+                .filter(Boolean)
+                .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0];
+            const lastActive = getRelativeTime(lastDonationAt || mergedCollector.lastDonationAt);
+            const isRecent = lastDonationAt ? (Date.now() - new Date(lastDonationAt).getTime()) < 1000 * 60 * 60 * 24 : false;
+            const status = mergedCollector.status || (isRecent ? 'active' : 'idle');
 
             return {
-                ...c,
+                ...mergedCollector,
                 collections: totalCollected,
                 dues: totalDues,
                 count,
-                lastActive
+                lastActive,
+                status
             };
         }).sort((a, b) => b.collections - a.collections);
-    }, [collectors, donations]);
+    }, [collectorByName, derivedCollectors, donations]);
 
     const activeCount = collectorsWithStats.filter(c => c.status === 'active').length;
     const avgCollection = Math.round(
@@ -41,6 +100,7 @@ export default function Collectors() {
     );
     const totalDues = collectorsWithStats.reduce((s, c) => s + c.dues, 0);
     const maxCollection = Math.max(...collectorsWithStats.map(c => c.collections), 1);
+    const showEmptyState = !isLoadingAppData && collectorsWithStats.length === 0;
 
     return (
         <>
@@ -119,38 +179,92 @@ export default function Collectors() {
 
             {/* Summary KPIs */}
             <div className="kpi-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', marginBottom: '24px' }}>
-                <div className="kpi-card saffron">
-                    <div className="kpi-icon saffron"><Users size={20} /></div>
-                    <div className="kpi-content">
-                        <div className="kpi-label">Active Now</div>
-                        <div className="kpi-value">{activeCount}</div>
-                    </div>
-                </div>
-                <div className="kpi-card green">
-                    <div className="kpi-icon green"><TrendingUp size={20} /></div>
-                    <div className="kpi-content">
-                        <div className="kpi-label">Avg. Collection</div>
-                        <div className="kpi-value"><span className="currency">₹</span>{avgCollection.toLocaleString('en-IN')}</div>
-                    </div>
-                </div>
-                <div className="kpi-card error">
-                    <div className="kpi-icon error"><AlertCircle size={20} /></div>
-                    <div className="kpi-content">
-                        <div className="kpi-label">Total Dues</div>
-                        <div className="kpi-value"><span className="currency">₹</span>{totalDues.toLocaleString('en-IN')}</div>
-                    </div>
-                </div>
+                {isLoadingAppData ? (
+                    <>
+                        <div className="kpi-card saffron">
+                            <div className="kpi-icon saffron"><Users size={20} /></div>
+                            <div className="kpi-content">
+                                <div className="kpi-label">Active Now</div>
+                                <div className="skeleton skeleton-text" style={{ width: '80px', height: '18px' }} />
+                            </div>
+                        </div>
+                        <div className="kpi-card green">
+                            <div className="kpi-icon green"><TrendingUp size={20} /></div>
+                            <div className="kpi-content">
+                                <div className="kpi-label">Avg. Collection</div>
+                                <div className="skeleton skeleton-text" style={{ width: '100px', height: '18px' }} />
+                            </div>
+                        </div>
+                        <div className="kpi-card error">
+                            <div className="kpi-icon error"><AlertCircle size={20} /></div>
+                            <div className="kpi-content">
+                                <div className="kpi-label">Total Dues</div>
+                                <div className="skeleton skeleton-text" style={{ width: '100px', height: '18px' }} />
+                            </div>
+                        </div>
+                    </>
+                ) : (
+                    <>
+                        <div className="kpi-card saffron">
+                            <div className="kpi-icon saffron"><Users size={20} /></div>
+                            <div className="kpi-content">
+                                <div className="kpi-label">Active Now</div>
+                                <div className="kpi-value">{activeCount}</div>
+                            </div>
+                        </div>
+                        <div className="kpi-card green">
+                            <div className="kpi-icon green"><TrendingUp size={20} /></div>
+                            <div className="kpi-content">
+                                <div className="kpi-label">Avg. Collection</div>
+                                <div className="kpi-value"><span className="currency">₹</span>{avgCollection.toLocaleString('en-IN')}</div>
+                            </div>
+                        </div>
+                        <div className="kpi-card error">
+                            <div className="kpi-icon error"><AlertCircle size={20} /></div>
+                            <div className="kpi-content">
+                                <div className="kpi-label">Total Dues</div>
+                                <div className="kpi-value"><span className="currency">₹</span>{totalDues.toLocaleString('en-IN')}</div>
+                            </div>
+                        </div>
+                    </>
+                )}
             </div>
 
             {/* Collector Cards */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 'var(--space-4)' }}>
-                {collectorsWithStats.map((c, index) => (
-                    <div
-                        key={c.id}
-                        className="card"
-                        style={{ padding: '20px', cursor: 'pointer', transition: 'all var(--transition-normal)' }}
-                        onClick={() => setSelected(c)}
-                    >
+                {isLoadingAppData ? (
+                    Array.from({ length: 6 }).map((_, idx) => (
+                        <div key={`collector-skeleton-${idx}`} className="card" style={{ padding: '20px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                                <div className="skeleton" style={{ width: '42px', height: '42px', borderRadius: '999px' }} />
+                                <div style={{ flex: 1 }}>
+                                    <div className="skeleton skeleton-text" style={{ width: '60%' }} />
+                                    <div className="skeleton skeleton-text" style={{ width: '40%', height: '12px' }} />
+                                </div>
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '12px' }}>
+                                <div className="skeleton skeleton-text" />
+                                <div className="skeleton skeleton-text" />
+                                <div className="skeleton skeleton-text" />
+                            </div>
+                            <div className="skeleton" style={{ height: '6px' }} />
+                        </div>
+                    ))
+                ) : showEmptyState ? (
+                    <div className="card" style={{ padding: '20px', gridColumn: '1 / -1' }}>
+                        <div style={{ fontWeight: 700, marginBottom: '6px' }}>No collectors yet</div>
+                        <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
+                            Create collectors in your club to start tracking performance here.
+                        </div>
+                    </div>
+                ) : (
+                    collectorsWithStats.map((c, index) => (
+                        <div
+                            key={c.id}
+                            className="card"
+                            style={{ padding: '20px', cursor: 'pointer', transition: 'all var(--transition-normal)' }}
+                            onClick={() => setSelected(c)}
+                        >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                 <div style={{
@@ -205,13 +319,10 @@ export default function Collectors() {
                                 {maxCollection > 0 ? Math.round((c.collections / maxCollection) * 100) : 0}%
                             </span>
                         </div>
-                    </div>
-                ))}
+                        </div>
+                    ))
+                )}
             </div>
         </>
     );
 }
-
-const collectorsData = [
-    // Keeping this just in case, but unused now
-];

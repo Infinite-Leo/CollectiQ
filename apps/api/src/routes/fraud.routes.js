@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { createUserClient, supabaseAdmin } from '../config/supabase.js';
-import { roleGuard } from '../middleware/auth.js';
+import { requireAppUser, roleGuard } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -29,7 +29,7 @@ router.get('/', roleGuard(['president', 'cashier']), async (req, res, next) => {
 });
 
 // PATCH /api/fraud/:id — Resolve/dismiss a flag (president only)
-router.patch('/:id', roleGuard(['president']), async (req, res, next) => {
+router.patch('/:id', roleGuard(['president']), requireAppUser, async (req, res, next) => {
     try {
         const supabase = req.accessToken ? createUserClient(req.accessToken) : supabaseAdmin;
         const { status, resolution_notes } = req.body;
@@ -39,7 +39,7 @@ router.patch('/:id', roleGuard(['president']), async (req, res, next) => {
             .update({
                 status,
                 resolution_notes,
-                resolved_by: req.user.id,
+                resolved_by: req.appUserId,
                 resolved_at: new Date().toISOString(),
             })
             .eq('id', req.params.id)

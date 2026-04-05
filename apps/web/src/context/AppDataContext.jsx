@@ -37,7 +37,10 @@ export function AppDataProvider({ children }) {
 
     // Initial Data Load
     useEffect(() => {
-        if (!isAuthenticated) return;
+        if (!isAuthenticated) {
+            setLoading(false);
+            return;
+        }
         
         async function loadData() {
             setLoading(true);
@@ -48,6 +51,7 @@ export function AppDataProvider({ children }) {
                     donorsRes,
                     donationsRes,
                     housesRes,
+                    collectorsRes,
                     summaryRes,
                     trendRes,
                     splitRes,
@@ -56,6 +60,7 @@ export function AppDataProvider({ children }) {
                     apiFetch('/api/donors'),
                     apiFetch('/api/donations?limit=100'), // Load recent donations
                     apiFetch('/api/houses'),
+                    apiFetch('/api/collectors'),
                     apiFetch('/api/dashboard/summary'),
                     apiFetch('/api/dashboard/trend?days=10'),
                     apiFetch('/api/dashboard/payment-split'),
@@ -77,7 +82,8 @@ export function AppDataProvider({ children }) {
                         collector: d.users?.full_name || 'Collector',
                         zone: d.zones?.name || '-',
                         mode: d.payment_mode,
-                        date: d.created_at
+                        status: d.payment_status,
+                        date: d.collected_at || d.created_at
                     })));
                 }
 
@@ -90,6 +96,9 @@ export function AppDataProvider({ children }) {
                         donor: h.donors?.full_name || h.donor_name || 'Guest',
                         phone: h.donors?.phone || h.phone || '-'
                     })));
+                }
+                if (collectorsRes.data) {
+                    setCollectors(collectorsRes.data);
                 }
                 if (summaryRes) setDashboardStats(summaryRes);
                 if (trendRes.data) {
@@ -163,12 +172,18 @@ export function AppDataProvider({ children }) {
                 body: JSON.stringify(payload)
             });
             if (res.data) {
+                const donorName = donors.find(d => d.id === donation.donor_id)?.full_name || donation.donor || 'Unknown';
+                const collectorName = collectors.find(c => c.id === res.data.collector_id)?.name
+                    || session?.user?.user_metadata?.full_name
+                    || 'Collector';
                 const newDonation = {
                     ...res.data,
                     receipt: res.data.receipt_number,
-                    donor: donation.donor,
+                    donor: donorName,
+                    collector: collectorName,
                     mode: res.data.payment_mode,
-                    date: res.data.created_at
+                    status: res.data.payment_status,
+                    date: res.data.collected_at || res.data.created_at
                 };
                 setDonations(prev => [newDonation, ...prev]);
                 const summaryRes = await apiFetch('/api/dashboard/summary').catch(() => null);
@@ -179,7 +194,7 @@ export function AppDataProvider({ children }) {
             console.error("Failed to add donation:", err);
             throw err;
         }
-    }, []);
+    }, [collectors, donors, session]);
 
     const addHouse = useCallback(async (house) => {
         try {
@@ -245,27 +260,20 @@ export function AppDataProvider({ children }) {
         pendingHouses: dashboardStats.pending_houses,
         collectedHouses: dashboardStats.collected_houses,
         totalHouses: dashboardStats.total_houses,
-        activeCollectors: collectors.length, // or fetch active collectors count
+        activeCollectors: collectors.filter(c => c.status === 'active').length || Array.from(
+            new Set(donations.map(d => d.collector).filter(Boolean))
+        ).length,
         totalDonations: dashboardStats.total_donations,
         paymentSplit: paymentSplit,
-    }), [dashboardStats, paymentSplit, collectors]);
+    }), [dashboardStats, paymentSplit, collectors, donations]);
 
-    // Recent donations (latest 5) maps backend schema to frontend expectation
+    // Recent donations (latest 5) - already mapped in initial load
     const recentDonations = useMemo(() => {
         return donations.slice(0, 5).map(d => ({
-            id: d.id,
-            receipt: d.receipt_number,
-            donor: d.donor_id ? donors.find(x => x.id === d.donor_id)?.full_name : 'Guest',
-            donor_id: d.donor_id,
-            collector: d.collector_id ? 'Collector' : 'You',
-            zone: '-',
-            amount: d.amount,
-            mode: d.payment_mode || 'cash',
-            status: d.status || 'paid',
-            date: d.created_at,
-            time: getRelativeTime(d.created_at),
+            ...d,
+            time: getRelativeTime(d.date || d.created_at),
         }));
-    }, [donations, donors]);
+    }, [donations]);
 
     const value = {
         isLoadingAppData: loading,

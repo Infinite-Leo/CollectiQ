@@ -1,5 +1,6 @@
-import { FileText, Download, TrendingUp, Users, MapPin, BarChart3 } from 'lucide-react';
+import { FileText, Download, TrendingUp, Users, MapPin } from 'lucide-react';
 import { useToast } from '../components/ui/Toast';
+import { useAppData } from '../context/AppDataContext';
 
 function generateFinancialCSV() {
     const rows = [
@@ -86,6 +87,7 @@ const generatedReports = [
 
 export default function Reports() {
     const toast = useToast();
+    const { isLoadingAppData } = useAppData();
 
     const handleDownload = (csvFn, filename) => {
         downloadCSV(csvFn(), filename);
@@ -109,35 +111,48 @@ export default function Reports() {
                 gap: 'var(--space-6)',
                 marginBottom: 'var(--space-8)'
             }}>
-                {reportCards.map((r) => {
-                    const Icon = r.icon;
-                    return (
-                        <div key={r.title} className="card" style={{ padding: 'var(--space-6)' }}>
+                {isLoadingAppData ? (
+                    Array.from({ length: 3 }).map((_, idx) => (
+                        <div key={`report-card-skeleton-${idx}`} className="card" style={{ padding: 'var(--space-6)' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-4)' }}>
-                                <div style={{
-                                    padding: '12px',
-                                    borderRadius: 'var(--radius-md)',
-                                    background: r.bgColor,
-                                    color: r.iconColor,
-                                }}>
-                                    <Icon size={24} />
-                                </div>
-                                <button
-                                    className="btn btn-secondary"
-                                    style={{ fontSize: '0.75rem', height: '32px' }}
-                                    onClick={() => handleDownload(r.csvFn, r.filename)}
-                                >
-                                    <Download size={14} /> CSV
-                                </button>
+                                <div className="skeleton" style={{ width: '48px', height: '48px', borderRadius: '12px' }} />
+                                <div className="skeleton skeleton-text" style={{ width: '50px', height: '20px' }} />
                             </div>
-                            <h3 style={{ fontFamily: 'Playfair Display', fontSize: '1rem', fontWeight: 700, color: '#2C1A0E', marginBottom: '4px' }}>{r.title}</h3>
-                            <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: 'var(--space-4)' }}>
-                                {r.description}
-                            </p>
-                            <div style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>Last updated: Just now</div>
+                            <div className="skeleton skeleton-text" style={{ width: '160px', height: '18px', marginBottom: '8px' }} />
+                            <div className="skeleton skeleton-text" style={{ width: '100%', height: '12px' }} />
                         </div>
-                    );
-                })}
+                    ))
+                ) : (
+                    reportCards.map((r) => {
+                        const Icon = r.icon;
+                        return (
+                            <div key={r.title} className="card" style={{ padding: 'var(--space-6)' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-4)' }}>
+                                    <div style={{
+                                        padding: '12px',
+                                        borderRadius: 'var(--radius-md)',
+                                        background: r.bgColor,
+                                        color: r.iconColor,
+                                    }}>
+                                        <Icon size={24} />
+                                    </div>
+                                    <button
+                                        className="btn btn-secondary"
+                                        style={{ fontSize: '0.75rem', height: '32px' }}
+                                        onClick={() => handleDownload(r.csvFn, r.filename)}
+                                    >
+                                        <Download size={14} /> CSV
+                                    </button>
+                                </div>
+                                <h3 style={{ fontFamily: 'Playfair Display', fontSize: '1rem', fontWeight: 700, color: '#2C1A0E', marginBottom: '4px' }}>{r.title}</h3>
+                                <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: 'var(--space-4)' }}>
+                                    {r.description}
+                                </p>
+                                <div style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>Last updated: Just now</div>
+                            </div>
+                        );
+                    })
+                )}
             </div>
 
             <div>
@@ -154,7 +169,16 @@ export default function Reports() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {generatedReports.map((r, i) => (
+                                {isLoadingAppData ? (
+                                    Array.from({ length: 3 }).map((_, idx) => (
+                                        <tr key={`generated-report-skeleton-${idx}`}>
+                                            <td><div className="skeleton skeleton-text" style={{ width: '200px' }} /></td>
+                                            <td><div className="skeleton skeleton-text" style={{ width: '120px' }} /></td>
+                                            <td><div className="skeleton skeleton-text" style={{ width: '120px' }} /></td>
+                                            <td><div className="skeleton skeleton-text" style={{ width: '60px' }} /></td>
+                                        </tr>
+                                    ))
+                                ) : generatedReports.map((r, i) => (
                                     <tr key={i}>
                                         <td>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', fontWeight: 500 }}>

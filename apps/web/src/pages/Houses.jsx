@@ -11,7 +11,7 @@ function priorityBadge(p) {
 }
 
 export default function Houses() {
-    const { houses, addHouse, toggleHouseCollected } = useAppData();
+    const { houses, addHouse, toggleHouseCollected, isLoadingAppData } = useAppData();
     const [search, setSearch] = useState('');
     const [showAddModal, setShowAddModal] = useState(false);
     const [showImportModal, setShowImportModal] = useState(false);
@@ -198,7 +198,13 @@ export default function Houses() {
                 <div>
                     <h2 style={{ fontFamily: 'Playfair Display', fontSize: '1.375rem', fontWeight: 700, color: '#2C1A0E' }}>Houses</h2>
                     <p style={{ fontFamily: 'Sora', fontSize: '0.875rem', color: '#7A5A3A', marginTop: '4px' }}>
-                        {collectedCount} of {totalHouses} houses collected ({progress}%)
+                        {isLoadingAppData ? (
+                            <span className="skeleton skeleton-text" style={{ display: 'inline-block', width: '220px', height: '14px' }} />
+                        ) : (
+                            <>
+                                {collectedCount} of {totalHouses} houses collected ({progress}%)
+                            </>
+                        )}
                     </p>
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
@@ -215,24 +221,32 @@ export default function Houses() {
             <div className="card" style={{ marginBottom: '20px', padding: '16px 20px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                     <span style={{ fontSize: '0.8125rem', fontWeight: 500 }}>Collection Progress</span>
-                    <span style={{ fontSize: '0.8125rem', fontWeight: 600, fontFamily: 'var(--font-mono)' }}>{progress}%</span>
+                    {isLoadingAppData ? (
+                        <span className="skeleton skeleton-text" style={{ width: '40px', height: '14px' }} />
+                    ) : (
+                        <span style={{ fontSize: '0.8125rem', fontWeight: 600, fontFamily: 'var(--font-mono)' }}>{progress}%</span>
+                    )}
                 </div>
                 <div className="progress-bar" style={{ height: '10px' }}>
                     <div className="progress-fill" style={{ width: `${progress}%` }} />
                 </div>
                 <div style={{ display: 'flex', gap: '24px', marginTop: '12px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>
-                        <CheckCircle size={14} color="var(--brand-green)" /> {collectedCount} Collected
+                        <CheckCircle size={14} color="var(--brand-green)" /> {isLoadingAppData ? '-' : `${collectedCount} Collected`}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>
-                        <Clock size={14} color="var(--color-warning)" /> {totalHouses - collectedCount} Pending
+                        <Clock size={14} color="var(--color-warning)" /> {isLoadingAppData ? '-' : `${totalHouses - collectedCount} Pending`}
                     </div>
                 </div>
             </div>
 
             {/* Interactive Google Map */}
             <div className="card" style={{ marginBottom: '20px', overflow: 'hidden' }}>
-                <HouseMap houses={houses} height="380px" />
+                {isLoadingAppData ? (
+                    <div className="skeleton" style={{ height: '380px' }} />
+                ) : (
+                    <HouseMap houses={houses} height="380px" />
+                )}
             </div>
 
             {/* Houses Table */}
@@ -260,7 +274,20 @@ export default function Houses() {
                             </tr>
                         </thead>
                         <tbody>
-                            {filtered.length === 0 ? (
+                            {isLoadingAppData ? (
+                                Array.from({ length: 6 }).map((_, idx) => (
+                                    <tr key={`house-skeleton-${idx}`}>
+                                        <td><div className="skeleton skeleton-text" style={{ width: '180px' }} /></td>
+                                        <td><div className="skeleton skeleton-text" style={{ width: '120px' }} /></td>
+                                        <td><div className="skeleton skeleton-text" style={{ width: '90px' }} /></td>
+                                        <td><div className="skeleton skeleton-text" style={{ width: '70px' }} /></td>
+                                        <td style={{ textAlign: 'right' }}><div className="skeleton skeleton-text" style={{ width: '60px', marginLeft: 'auto' }} /></td>
+                                        <td><div className="skeleton skeleton-text" style={{ width: '70px' }} /></td>
+                                        <td><div className="skeleton skeleton-text" style={{ width: '70px' }} /></td>
+                                        <td style={{ textAlign: 'center' }}><div className="skeleton skeleton-text" style={{ width: '60px', margin: '0 auto' }} /></td>
+                                    </tr>
+                                ))
+                            ) : filtered.length === 0 ? (
                                 <tr><td colSpan="8" className="empty-state"><p>No houses match your search</p></td></tr>
                             ) : filtered.map((h) => (
                                 <tr key={h.id}>

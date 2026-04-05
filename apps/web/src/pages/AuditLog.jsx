@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Loader2, AlertCircle, LogIn, LogOut, UserPlus, XCircle, RefreshCw, Filter } from 'lucide-react';
+import { AlertCircle, LogIn, LogOut, UserPlus, XCircle, RefreshCw, Filter } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
@@ -139,9 +139,17 @@ export default function AuditLog() {
             {/* Events list */}
             <div className="card">
                 {loading ? (
-                    <div style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                        <Loader2 size={24} className="animate-spin" style={{ margin: '0 auto 8px' }} />
-                        <div>Loading auth logs…</div>
+                    <div style={{ padding: '20px' }}>
+                        {Array.from({ length: 6 }).map((_, idx) => (
+                            <div key={`audit-skeleton-${idx}`} style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 0' }}>
+                                <div className="skeleton" style={{ width: '36px', height: '36px', borderRadius: '10px' }} />
+                                <div style={{ flex: 1 }}>
+                                    <div className="skeleton skeleton-text" style={{ width: '160px', marginBottom: '6px' }} />
+                                    <div className="skeleton skeleton-text" style={{ width: '220px', height: '12px' }} />
+                                </div>
+                                <div className="skeleton skeleton-text" style={{ width: '60px', height: '12px' }} />
+                            </div>
+                        ))}
                     </div>
                 ) : logs.length === 0 ? (
                     <div style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>

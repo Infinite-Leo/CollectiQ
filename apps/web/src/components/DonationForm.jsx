@@ -46,21 +46,22 @@ export default function DonationForm({ onSuccess }) {
         setError(null);
 
         try {
-            // Simulate network delay for better UX
-            await new Promise(resolve => setTimeout(resolve, 600));
-
             // 1. Create or get donor
             let donorId = formData.donor_id;
             if (!donorId && formData.donor_name) {
-                const newDonor = addDonor({
+                const newDonor = await addDonor({
                     full_name: formData.donor_name,
                     phone: formData.phone,
                 });
-                donorId = newDonor.id;
+                donorId = newDonor?.id;
+            }
+
+            if (!donorId) {
+                throw new Error('Could not create or find donor. Please try again.');
             }
 
             // 2. Create donation
-            const result = addDonation({
+            const result = await addDonation({
                 donor: formData.donor_name,
                 donor_id: donorId,
                 amount: formData.amount,
