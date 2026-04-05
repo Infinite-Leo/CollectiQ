@@ -22,6 +22,9 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // ── Global Middleware ────────────────────────────────────────────
+// Trust proxy headers (required for Railway/Vercel reverse proxy + rate limiting)
+app.set('trust proxy', 1);
+
 app.use(helmet());
 app.use(cors({
     origin: [
@@ -42,10 +45,10 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '1mb' }));
 
-// Rate limiting: 100 requests per 15 minutes per IP
+// Rate limiting: 500 requests per 15 minutes per IP
 app.use(rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 100,
+    max: 500,
     standardHeaders: true,
     legacyHeaders: false,
     message: { error: 'Too many requests, please try again later.' },
