@@ -123,7 +123,7 @@ export function AppDataProvider({ children }) {
     
     const addDonor = useCallback(async (donor) => {
         try {
-            const payload = { full_name: donor.full_name, phone: donor.phone };
+            const payload = { full_name: donor.full_name, phone: donor.phone || null };
             const res = await apiFetch('/api/donors', {
                 method: 'POST',
                 body: JSON.stringify(payload)

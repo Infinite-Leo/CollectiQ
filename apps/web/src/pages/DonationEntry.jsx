@@ -48,19 +48,22 @@ export default function DonationEntry() {
         try {
             await new Promise(resolve => setTimeout(resolve, 800));
 
-            const result = addDonation({
+            let donorId = null;
+            if (form.donor_name) {
+                const newDonor = await addDonor({
+                    full_name: form.donor_name,
+                    phone: form.phone
+                });
+                if (newDonor) donorId = newDonor.id;
+            }
+
+            const result = await addDonation({
                 donor: form.donor_name,
+                donor_id: donorId,
                 amount: form.amount,
                 mode: form.payment_mode,
                 status: form.payment_status,
             });
-
-            if (form.donor_name) {
-                addDonor({
-                    full_name: form.donor_name,
-                    phone: form.phone
-                });
-            }
 
             setReceipt(result.receipt);
             setStatus('success');
