@@ -17,14 +17,13 @@ function normalizeRole(role) {
 export async function auth(req, res, next) {
     try {
         const authHeader = req.headers.authorization;
-
-        // Development bypass — if no token provided and running locally, use mock user
         const isDevelopment = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'dev';
-        if (!authHeader?.startsWith('Bearer ') && isDevelopment) {
+
+        // Helper to attach mock dev user context
+        function attachDevUser(reason) {
             const devUserId = 'c3d4e5f6-a7b8-9012-cdef-123456789012';
-            // Fixed UUID matching seed.js DEV_CLUB_ID
             const devClubId = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
-            console.log('ℹ️  Development mode: Using mock user (no token provided)');
+            console.log(`ℹ️  Development mode: Using mock user (${reason})`);
             req.user = {
                 id: devUserId,
                 email: 'president@durganagar.com',
@@ -44,6 +43,11 @@ export async function auth(req, res, next) {
             return next();
         }
 
+        // Development bypass — no token provided
+        if (!authHeader?.startsWith('Bearer ') && isDevelopment) {
+            return attachDevUser('no token provided');
+        }
+
         if (!authHeader?.startsWith('Bearer ')) {
             return res.status(401).json({ error: 'Missing or invalid authorization header' });
         }
@@ -52,6 +56,10 @@ export async function auth(req, res, next) {
         const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
 
         if (error || !user) {
+            // In development, fall back to mock user if token is stale/expired
+            if (isDevelopment) {
+                return attachDevUser('token invalid/expired — falling back');
+            }
             return res.status(401).json({ error: 'Invalid or expired token' });
         }
 
