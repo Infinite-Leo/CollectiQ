@@ -1,8 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { AlertCircle, LogIn, LogOut, UserPlus, XCircle, RefreshCw, Filter } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-
-const API_BASE = import.meta.env.VITE_API_URL || '';
+import { apiFetch } from '../utils/api';
 
 const EVENT_CONFIG = {
     login:         { label: 'Login',         icon: LogIn,    color: '#1E5C3A', bg: '#E8F5EE', border: 'rgba(30,92,58,0.15)' },
@@ -38,19 +36,12 @@ export default function AuditLog() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [filter, setFilter] = useState('all');
-    const { getAccessToken } = useAuth();
-
     const fetchLogs = useCallback(async () => {
         setLoading(true);
         setError(null);
         try {
-            const token = await getAccessToken();
             const typeParam = filter !== 'all' ? `&type=${filter}` : '';
-            const res = await fetch(`${API_BASE}/api/auth/logs?limit=100${typeParam}`, {
-                headers: token ? { Authorization: `Bearer ${token}` } : {},
-            });
-            if (!res.ok) throw new Error('Failed to fetch auth logs');
-            const { data } = await res.json();
+            const { data } = await apiFetch(`/api/auth/logs?limit=100${typeParam}`);
             setLogs(data);
         } catch (err) {
             console.error(err);
@@ -58,7 +49,7 @@ export default function AuditLog() {
         } finally {
             setLoading(false);
         }
-    }, [filter, getAccessToken]);
+    }, [filter]);
 
     useEffect(() => {
         fetchLogs();

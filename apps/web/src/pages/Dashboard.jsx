@@ -85,6 +85,59 @@ export default function Dashboard() {
     const [isDonationModalOpen, setIsDonationModalOpen] = useState(false);
     const [chartRange, setChartRange] = useState('7D');
 
+    // ── ALL hooks MUST be called unconditionally (Rules of Hooks) ──
+    const kpiData = useMemo(() => {
+        if (!stats) return [];
+        const totalHouses = stats.totalHouses || 1; // avoid division by zero
+        return [
+            {
+                label: 'Total Collection',
+                value: (stats.totalCollection || 0).toLocaleString('en-IN'),
+                delta: `${stats.totalDonations || 0} donations`,
+                deltaUp: true,
+                icon: IndianRupee,
+                accent: 'saffron',
+            },
+            {
+                label: 'Today\'s Collection',
+                value: (stats.todaysCollection || 0).toLocaleString('en-IN'),
+                delta: stats.todaysCollection > 0 ? 'Active' : 'No collections yet',
+                deltaUp: stats.todaysCollection > 0,
+                icon: TrendingUp,
+                accent: 'green',
+            },
+            {
+                label: 'Active Collectors',
+                value: String(stats.activeCollectors || 0),
+                delta: `${stats.activeCollectors || 0} in field`,
+                deltaUp: true,
+                icon: Users,
+                accent: 'gold',
+            },
+            {
+                label: 'Pending Houses',
+                value: String(stats.pendingHouses || 0),
+                delta: `${Math.round(((stats.collectedHouses || 0) / totalHouses) * 100)}% done`,
+                deltaUp: false,
+                icon: Home,
+                accent: 'error',
+            },
+        ];
+    }, [stats]);
+
+    const filteredTrend = useMemo(() => {
+        if (!trendData || trendData.length === 0) return [];
+        if (chartRange === 'All') return trendData;
+        const days = chartRange === '7D' ? 7 : 30;
+        return trendData.slice(-days);
+    }, [trendData, chartRange]);
+
+    const maxCollectorAmount = useMemo(() =>
+        Math.max(...(collectorRanking || []).map(c => c.amount), 1),
+        [collectorRanking]
+    );
+
+    // ── Loading skeleton (AFTER all hooks) ──────────────────────────
     if (isLoadingAppData) {
         return (
             <>
@@ -134,53 +187,7 @@ export default function Dashboard() {
         );
     }
 
-    const kpiData = useMemo(() => [
-        {
-            label: 'Total Collection',
-            value: stats.totalCollection.toLocaleString('en-IN'),
-            delta: `${stats.totalDonations} donations`,
-            deltaUp: true,
-            icon: IndianRupee,
-            accent: 'saffron',
-        },
-        {
-            label: 'Today\'s Collection',
-            value: stats.todaysCollection.toLocaleString('en-IN'),
-            delta: stats.todaysCollection > 0 ? 'Active' : 'No collections yet',
-            deltaUp: stats.todaysCollection > 0,
-            icon: TrendingUp,
-            accent: 'green',
-        },
-        {
-            label: 'Active Collectors',
-            value: String(stats.activeCollectors),
-            delta: `${stats.activeCollectors} in field`,
-            deltaUp: true,
-            icon: Users,
-            accent: 'gold',
-        },
-        {
-            label: 'Pending Houses',
-            value: String(stats.pendingHouses),
-            delta: `${Math.round((stats.collectedHouses / stats.totalHouses) * 100)}% done`,
-            deltaUp: false,
-            icon: Home,
-            accent: 'error',
-        },
-    ], [stats]);
-
-    const filteredTrend = useMemo(() => {
-        if (chartRange === 'All') return trendData;
-        const days = chartRange === '7D' ? 7 : 30;
-        return trendData.slice(-days);
-    }, [trendData, chartRange]);
-
-    const maxCollectorAmount = useMemo(() =>
-        Math.max(...collectorRanking.map(c => c.amount), 1),
-        [collectorRanking]
-    );
-
-    const paymentSplit = stats.paymentSplit;
+    const paymentSplit = stats.paymentSplit || [];
 
     return (
         <>
