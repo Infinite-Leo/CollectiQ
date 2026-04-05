@@ -34,6 +34,7 @@ export default function DonationEntry() {
 
     const [status, setStatus] = useState('idle');
     const [receipt, setReceipt] = useState(null);
+    const [errorMsg, setErrorMsg] = useState(null);
     const presets = [500, 1000, 1500, 2500, 5000, 11000];
 
     function handleChange(e) {
@@ -44,10 +45,9 @@ export default function DonationEntry() {
     async function handleSubmit(e) {
         e.preventDefault();
         setStatus('submitting');
+        setErrorMsg(null);
 
         try {
-            await new Promise(resolve => setTimeout(resolve, 800));
-
             let donorId = null;
             if (form.donor_name) {
                 const newDonor = await addDonor({
@@ -55,6 +55,10 @@ export default function DonationEntry() {
                     phone: form.phone
                 });
                 if (newDonor) donorId = newDonor.id;
+            }
+
+            if (!donorId) {
+                throw new Error('Could not create or find donor. Please try again.');
             }
 
             const result = await addDonation({
@@ -65,10 +69,11 @@ export default function DonationEntry() {
                 status: form.payment_status,
             });
 
-            setReceipt(result.receipt);
+            setReceipt(result.receipt_number || result.receipt);
             setStatus('success');
         } catch (error) {
-            console.error(error);
+            console.error('Donation submission error:', error);
+            setErrorMsg(error.message || 'Failed to record donation. Please try again.');
             setStatus('idle');
         }
     }
@@ -120,6 +125,17 @@ export default function DonationEntry() {
                 </p>
 
                 <form onSubmit={handleSubmit} style={{ opacity: status === 'submitting' ? 0.7 : 1, pointerEvents: status === 'submitting' ? 'none' : 'auto' }}>
+                    {/* Error Banner */}
+                    {errorMsg && (
+                        <div style={{
+                            marginBottom: '16px', padding: '12px 16px', borderRadius: '10px',
+                            background: `${C.crimson}10`, border: `1px solid ${C.crimson}30`,
+                            fontFamily: 'Sora', fontSize: '0.8125rem', color: C.crimson,
+                            display: 'flex', alignItems: 'center', gap: '8px'
+                        }}>
+                            ⚠️ {errorMsg}
+                        </div>
+                    )}
                     {/* Donor Details Card */}
                     <div className="card" style={{ marginBottom: '20px' }}>
                         <div className="card-header">

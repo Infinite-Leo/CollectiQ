@@ -129,21 +129,33 @@ export function AppDataProvider({ children }) {
                 body: JSON.stringify(payload)
             });
             if (res.data) {
-                setDonors(prev => [...prev, { ...res.data, zone: 'Zone A' }]);
+                // Only add to local state if it's genuinely new
+                if (!res.existing) {
+                    setDonors(prev => [...prev, { ...res.data, zone: 'Zone A' }]);
+                }
                 return res.data;
             }
         } catch (err) {
             console.error("Failed to add donor:", err);
+            // Fallback: try to find existing donor in local state
+            const existing = donors.find(d =>
+                d.full_name === donor.full_name ||
+                (donor.phone && d.phone === donor.phone)
+            );
+            if (existing) return existing;
             throw err;
         }
-    }, []);
+    }, [donors]);
 
     const addDonation = useCallback(async (donation) => {
         try {
+            if (!donation.donor_id) {
+                throw new Error('Cannot create donation: donor_id is required');
+            }
             const payload = {
                 amount: parseFloat(donation.amount),
                 payment_mode: donation.mode || 'cash',
-                donor_id: donation.donor_id || null,
+                donor_id: donation.donor_id,
                 payment_status: donation.status || 'paid'
             };
             const res = await apiFetch('/api/donations', {

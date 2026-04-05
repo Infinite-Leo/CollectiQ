@@ -29,7 +29,7 @@ router.get('/', async (req, res, next) => {
     }
 });
 
-// POST /api/donors — Create a new donor
+// POST /api/donors — Create a new donor (or return existing if duplicate)
 router.post('/', roleGuard(['president', 'secretary', 'collector', 'owner']), async (req, res, next) => {
     try {
         const { full_name, phone, house_id } = req.body;
@@ -39,13 +39,41 @@ router.post('/', roleGuard(['president', 'secretary', 'collector', 'owner']), as
             .insert({
                 club_id: req.clubId,
                 full_name,
-                phone,
+                phone: phone || null,
                 house_id,
             })
             .select()
             .single();
 
-        if (error) throw error;
+        if (error) {
+            // Handle duplicate donor (unique constraint on club_id + phone)
+            if (error.code === '23505' && phone) {
+                const { data: existing, error: lookupErr } = await supabaseAdmin
+                    .from('donors')
+                    .select('*')
+                    .eq('club_id', req.clubId)
+                    .eq('phone', phone)
+                    .single();
+
+                if (lookupErr) throw lookupErr;
+                return res.status(200).json({ data: existing, existing: true });
+            }
+            // If no phone or different constraint, try lookup by name
+            if (error.code === '23505') {
+                const { data: existing, error: lookupErr } = await supabaseAdmin
+                    .from('donors')
+                    .select('*')
+                    .eq('club_id', req.clubId)
+                    .eq('full_name', full_name)
+                    .limit(1)
+                    .single();
+
+                if (!lookupErr && existing) {
+                    return res.status(200).json({ data: existing, existing: true });
+                }
+            }
+            throw error;
+        }
 
         res.status(201).json({ data });
     } catch (err) {
