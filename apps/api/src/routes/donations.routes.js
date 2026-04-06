@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createUserClient, supabaseAdmin } from '../config/supabase.js';
+import { supabaseAdmin } from '../config/supabase.js';
 import { requireAppUser, roleGuard } from '../middleware/auth.js';
 import { PAYMENT_MODES, PAYMENT_STATUSES } from '../constants/paymentModes.js';
 
@@ -68,8 +68,6 @@ router.post('/', roleGuard(['president', 'secretary', 'collector']), requireAppU
             idempotency_key, notes, collection_lat, collection_lng, device_id,
         } = req.body;
 
-        const supabase = req.accessToken ? createUserClient(req.accessToken) : supabaseAdmin;
-
         // Ensure event_id exists
         let finalEventId = event_id;
         if (!finalEventId) {
@@ -89,7 +87,7 @@ router.post('/', roleGuard(['president', 'secretary', 'collector']), requireAppU
         }
 
         // Insert donation
-        const data = await insertDonationWithRetry(supabase, {
+        const data = await insertDonationWithRetry(supabaseAdmin, {
             club_id: req.clubId,
             event_id: finalEventId,
             donor_id,

@@ -1,18 +1,16 @@
 import { Router } from 'express';
-import { createUserClient, supabaseAdmin } from '../config/supabase.js';
-import { roleGuard } from '../middleware/auth.js';
+import { supabaseAdmin } from '../config/supabase.js';
 
 const router = Router();
 
 // GET /api/dashboard/summary — KPI cards data
 router.get('/summary', async (req, res, next) => {
     try {
-        const supabase = req.accessToken ? createUserClient(req.accessToken) : supabaseAdmin;
         const { event_id } = req.query;
         const eventId = event_id || null;
 
         // Total collection
-        const { data: totalData, error: totalErr } = await supabase
+        const { data: totalData, error: totalErr } = await supabaseAdmin
             .rpc('dashboard_total_collection', {
                 p_club_id: req.clubId,
                 p_event_id: eventId,
@@ -20,7 +18,7 @@ router.get('/summary', async (req, res, next) => {
         if (totalErr) throw totalErr;
 
         // Today's collection
-        const { data: todayData, error: todayErr } = await supabase
+        const { data: todayData, error: todayErr } = await supabaseAdmin
             .rpc('dashboard_today_collection', {
                 p_club_id: req.clubId,
                 p_event_id: eventId,
@@ -28,7 +26,7 @@ router.get('/summary', async (req, res, next) => {
         if (todayErr) throw todayErr;
 
         // Pending houses
-        let houseQuery = supabase
+        let houseQuery = supabaseAdmin
             .from('houses')
             .select('is_collected', { count: 'exact' })
             .eq('club_id', req.clubId);
@@ -55,10 +53,9 @@ router.get('/summary', async (req, res, next) => {
 // GET /api/dashboard/collector-stats — Collector ranking
 router.get('/collector-stats', async (req, res, next) => {
     try {
-        const supabase = req.accessToken ? createUserClient(req.accessToken) : supabaseAdmin;
         const { event_id } = req.query;
 
-        const { data, error } = await supabase
+        const { data, error } = await supabaseAdmin
             .rpc('dashboard_collector_ranking', {
                 p_club_id: req.clubId,
                 p_event_id: event_id || null,
@@ -74,10 +71,9 @@ router.get('/collector-stats', async (req, res, next) => {
 // GET /api/dashboard/payment-split — Cash/UPI/Bank breakdown
 router.get('/payment-split', async (req, res, next) => {
     try {
-        const supabase = req.accessToken ? createUserClient(req.accessToken) : supabaseAdmin;
         const { event_id } = req.query;
 
-        const { data, error } = await supabase
+        const { data, error } = await supabaseAdmin
             .rpc('dashboard_payment_split', {
                 p_club_id: req.clubId,
                 p_event_id: event_id || null,
@@ -93,10 +89,9 @@ router.get('/payment-split', async (req, res, next) => {
 // GET /api/dashboard/trend — Daily collection trend
 router.get('/trend', async (req, res, next) => {
     try {
-        const supabase = req.accessToken ? createUserClient(req.accessToken) : supabaseAdmin;
         const { event_id, days = 7 } = req.query;
 
-        const { data, error } = await supabase
+        const { data, error } = await supabaseAdmin
             .rpc('dashboard_collection_trend', {
                 p_club_id: req.clubId,
                 p_event_id: event_id || null,

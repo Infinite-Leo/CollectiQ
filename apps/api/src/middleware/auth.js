@@ -1,14 +1,5 @@
 import { supabaseAdmin } from '../config/supabase.js';
-
-const LEGACY_ROLE_MAP = {
-    owner: 'president',
-    admin: 'secretary',
-    viewer: 'cashier',
-};
-
-function normalizeRole(role) {
-    return LEGACY_ROLE_MAP[role] || role || null;
-}
+import { normalizeRole, resolveUserContext } from '../services/userContext.js';
 
 /**
  * Auth middleware — verifies Supabase JWT and attaches user context.
@@ -63,25 +54,16 @@ export async function auth(req, res, next) {
             return res.status(401).json({ error: 'Invalid or expired token' });
         }
 
+        const context = await resolveUserContext(user, { autoAssignIfSingleClub: true });
+
         // Attach user context for downstream use
-        req.user = user;
-        req.authUser = user;
-        req.userRole = normalizeRole(user.app_metadata?.role);
-        req.clubId = user.app_metadata?.club_id;
+        req.user = context.authUser;
+        req.authUser = context.authUser;
+        req.userRole = normalizeRole(context.userRole);
+        req.clubId = context.clubId;
         req.accessToken = token;
-
-        const { data: appUser, error: appUserErr } = await supabaseAdmin
-            .from('users')
-            .select('id, full_name, email, phone, is_active')
-            .eq('auth_uid', user.id)
-            .maybeSingle();
-
-        if (appUserErr) {
-            return next(appUserErr);
-        }
-
-        req.appUser = appUser || null;
-        req.appUserId = appUser?.id || null;
+        req.appUser = context.appUser || null;
+        req.appUserId = context.appUserId || null;
 
         next();
     } catch (err) {

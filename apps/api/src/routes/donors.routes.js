@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createUserClient, supabaseAdmin } from '../config/supabase.js';
+import { supabaseAdmin } from '../config/supabase.js';
 import { roleGuard } from '../middleware/auth.js';
 
 const router = Router();
@@ -9,8 +9,7 @@ router.get('/', async (req, res, next) => {
     try {
         const { query, limit = 50 } = req.query;
 
-        const supabase = req.accessToken ? createUserClient(req.accessToken) : supabaseAdmin;
-        let dbQuery = supabase
+        let dbQuery = supabaseAdmin
             .from('donors')
             .select('*')
             .eq('club_id', req.clubId)

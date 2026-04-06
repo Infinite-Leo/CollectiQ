@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createUserClient, supabaseAdmin } from '../config/supabase.js';
+import { supabaseAdmin } from '../config/supabase.js';
 import { requireAppUser, roleGuard } from '../middleware/auth.js';
 
 const router = Router();
@@ -7,10 +7,9 @@ const router = Router();
 // GET /api/fraud — List fraud flags
 router.get('/', roleGuard(['president', 'cashier']), async (req, res, next) => {
     try {
-        const supabase = req.accessToken ? createUserClient(req.accessToken) : supabaseAdmin;
         const { status, severity } = req.query;
 
-        let query = supabase
+        let query = supabaseAdmin
             .from('fraud_flags')
             .select('*, donations(receipt_number, amount), users!flagged_user_id(full_name)')
             .eq('club_id', req.clubId)
@@ -31,10 +30,9 @@ router.get('/', roleGuard(['president', 'cashier']), async (req, res, next) => {
 // PATCH /api/fraud/:id — Resolve/dismiss a flag (president only)
 router.patch('/:id', roleGuard(['president']), requireAppUser, async (req, res, next) => {
     try {
-        const supabase = req.accessToken ? createUserClient(req.accessToken) : supabaseAdmin;
         const { status, resolution_notes } = req.body;
 
-        const { data, error } = await supabase
+        const { data, error } = await supabaseAdmin
             .from('fraud_flags')
             .update({
                 status,

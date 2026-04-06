@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createUserClient, supabaseAdmin } from '../config/supabase.js';
+import { supabaseAdmin } from '../config/supabase.js';
 import { roleGuard } from '../middleware/auth.js';
 
 const router = Router();
@@ -7,10 +7,9 @@ const router = Router();
 // GET /api/audit — Fetch audit logs (Paginated)
 router.get('/', roleGuard(['president', 'secretary']), async (req, res, next) => {
     try {
-        const supabase = req.accessToken ? createUserClient(req.accessToken) : supabaseAdmin;
         const { page = 1, limit = 50, table_name, action } = req.query;
 
-        let query = supabase
+        let query = supabaseAdmin
             .from('audit_logs')
             .select('*, users(full_name, role)', { count: 'exact' })
             .eq('club_id', req.clubId)

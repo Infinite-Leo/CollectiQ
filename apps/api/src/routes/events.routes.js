@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createUserClient, supabaseAdmin } from '../config/supabase.js';
+import { supabaseAdmin } from '../config/supabase.js';
 import { roleGuard } from '../middleware/auth.js';
 
 const router = Router();
@@ -7,8 +7,7 @@ const router = Router();
 // GET /api/events — List events for current club
 router.get('/', async (req, res, next) => {
     try {
-        const supabase = req.accessToken ? createUserClient(req.accessToken) : supabaseAdmin;
-        const { data, error } = await supabase
+        const { data, error } = await supabaseAdmin
             .from('events')
             .select('*')
             .eq('club_id', req.clubId)
@@ -24,10 +23,9 @@ router.get('/', async (req, res, next) => {
 // POST /api/events — Create event
 router.post('/', roleGuard(['president', 'secretary']), async (req, res, next) => {
     try {
-        const supabase = req.accessToken ? createUserClient(req.accessToken) : supabaseAdmin;
         const { name, type, start_date, end_date } = req.body;
 
-        const { data, error } = await supabase
+        const { data, error } = await supabaseAdmin
             .from('events')
             .insert({
                 club_id: req.clubId,
@@ -50,8 +48,7 @@ router.post('/', roleGuard(['president', 'secretary']), async (req, res, next) =
 // PATCH /api/events/:id — Update event
 router.patch('/:id', roleGuard(['president', 'secretary']), async (req, res, next) => {
     try {
-        const supabase = req.accessToken ? createUserClient(req.accessToken) : supabaseAdmin;
-        const { data, error } = await supabase
+        const { data, error } = await supabaseAdmin
             .from('events')
             .update(req.body)
             .eq('id', req.params.id)

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createUserClient, supabaseAdmin } from '../config/supabase.js';
+import { supabaseAdmin } from '../config/supabase.js';
 import { roleGuard } from '../middleware/auth.js';
 
 const router = Router();
@@ -7,8 +7,7 @@ const router = Router();
 // GET /api/clubs — Get current user's club
 router.get('/', async (req, res, next) => {
     try {
-        const supabase = req.accessToken ? createUserClient(req.accessToken) : supabaseAdmin;
-        const { data, error } = await supabase
+        const { data, error } = await supabaseAdmin
             .from('clubs')
             .select('*')
             .eq('id', req.clubId)
@@ -24,10 +23,9 @@ router.get('/', async (req, res, next) => {
 // PATCH /api/clubs — Update club settings (president only)
 router.patch('/', roleGuard(['president']), async (req, res, next) => {
     try {
-        const supabase = req.accessToken ? createUserClient(req.accessToken) : supabaseAdmin;
         const { name, address, phone, email, logo_url } = req.body;
 
-        const { data, error } = await supabase
+        const { data, error } = await supabaseAdmin
             .from('clubs')
             .update({ name, address, phone, email, logo_url })
             .eq('id', req.clubId)

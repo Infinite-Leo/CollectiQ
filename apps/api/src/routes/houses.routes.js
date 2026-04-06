@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createUserClient, supabaseAdmin } from '../config/supabase.js';
+import { supabaseAdmin } from '../config/supabase.js';
 import { roleGuard } from '../middleware/auth.js';
 
 const router = Router();
@@ -7,10 +7,9 @@ const router = Router();
 // GET /api/houses — List houses (with pagination + bbox filter for maps)
 router.get('/', async (req, res, next) => {
     try {
-        const supabase = req.accessToken ? createUserClient(req.accessToken) : supabaseAdmin;
         const { event_id, zone_id, is_collected, priority, page = 1, limit = 100 } = req.query;
 
-        let query = supabase
+        let query = supabaseAdmin
             .from('houses')
             .select('*, zones(name)', { count: 'exact' })
             .eq('club_id', req.clubId)
@@ -34,8 +33,7 @@ router.get('/', async (req, res, next) => {
 // POST /api/houses — Add a single house
 router.post('/', roleGuard(['president', 'secretary', 'collector', 'owner']), async (req, res, next) => {
     try {
-        const supabase = req.accessToken ? createUserClient(req.accessToken) : supabaseAdmin;
-        const { data, error } = await supabase
+        const { data, error } = await supabaseAdmin
             .from('houses')
             .insert({ ...req.body, club_id: req.clubId })
             .select()
@@ -51,11 +49,10 @@ router.post('/', roleGuard(['president', 'secretary', 'collector', 'owner']), as
 // POST /api/houses/bulk — Bulk import from CSV
 router.post('/bulk', roleGuard(['president', 'secretary', 'owner']), async (req, res, next) => {
     try {
-        const supabase = req.accessToken ? createUserClient(req.accessToken) : supabaseAdmin;
         const { houses } = req.body; // Array of house objects
 
         const withClub = houses.map((h) => ({ ...h, club_id: req.clubId }));
-        const { data, error } = await supabase
+        const { data, error } = await supabaseAdmin
             .from('houses')
             .insert(withClub)
             .select();
@@ -70,8 +67,7 @@ router.post('/bulk', roleGuard(['president', 'secretary', 'owner']), async (req,
 // PATCH /api/houses/:id — Update house
 router.patch('/:id', roleGuard(['president', 'secretary', 'owner']), async (req, res, next) => {
     try {
-        const supabase = req.accessToken ? createUserClient(req.accessToken) : supabaseAdmin;
-        const { data, error } = await supabase
+        const { data, error } = await supabaseAdmin
             .from('houses')
             .update(req.body)
             .eq('id', req.params.id)

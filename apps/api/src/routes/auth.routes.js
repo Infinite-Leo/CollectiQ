@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { supabaseAdmin } from '../config/supabase.js';
+import { resolveUserContext } from '../services/userContext.js';
 
 const router = Router();
 
@@ -68,6 +69,8 @@ router.post('/signup', async (req, res, next) => {
             return res.status(400).json({ error: error.message });
         }
 
+        const context = await resolveUserContext(data.user, { autoAssignIfSingleClub: true });
+
         // Sign the user in immediately after signup
         const { data: session, error: loginError } = await supabaseAdmin.auth.signInWithPassword({
             email,
@@ -91,6 +94,8 @@ router.post('/signup', async (req, res, next) => {
                 id: data.user.id,
                 email: data.user.email,
                 full_name: data.user.user_metadata?.full_name,
+                role: context.userRole || 'member',
+                club_id: context.clubId,
             },
             session: session.session,
         });
@@ -108,7 +113,7 @@ router.post('/login', async (req, res, next) => {
             return res.status(400).json({ error: 'Email and password are required' });
         }
 
-        const { data, error } = await supabaseAdmin.auth.signInWithPassword({
+        let { data, error } = await supabaseAdmin.auth.signInWithPassword({
             email,
             password,
         });
@@ -120,6 +125,22 @@ router.post('/login', async (req, res, next) => {
                 userAgent: req.headers['user-agent'],
             });
             return res.status(401).json({ error: error.message });
+        }
+
+        let context = await resolveUserContext(data.user, { autoAssignIfSingleClub: true });
+
+        if (context.membershipCreated || context.appMetadataUpdated) {
+            const refreshed = await supabaseAdmin.auth.signInWithPassword({
+                email,
+                password,
+            });
+
+            if (refreshed.error) {
+                return res.status(401).json({ error: refreshed.error.message });
+            }
+
+            data = refreshed.data;
+            context = await resolveUserContext(data.user, { autoAssignIfSingleClub: true });
         }
 
         logAuthEvent('login', {
@@ -135,6 +156,8 @@ router.post('/login', async (req, res, next) => {
                 id: data.user.id,
                 email: data.user.email,
                 full_name: data.user.user_metadata?.full_name,
+                role: context.userRole || 'member',
+                club_id: context.clubId,
             },
             session: data.session,
         });
@@ -186,13 +209,15 @@ router.get('/me', async (req, res, next) => {
             return res.status(401).json({ error: 'Invalid or expired token' });
         }
 
+        const context = await resolveUserContext(user, { autoAssignIfSingleClub: true });
+
         res.json({
             user: {
                 id: user.id,
                 email: user.email,
                 full_name: user.user_metadata?.full_name,
-                role: user.app_metadata?.role || 'member',
-                club_id: user.app_metadata?.club_id,
+                role: context.userRole || 'member',
+                club_id: context.clubId,
             },
         });
     } catch (err) {
