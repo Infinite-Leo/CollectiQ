@@ -4,6 +4,7 @@ import { AppDataProvider } from './context/AppDataContext';
 import { ThemeProvider } from './context/ThemeContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './layouts/Layout';
+import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
 import Donations from './pages/Donations';
 import DonationEntry from './pages/DonationEntry';
@@ -23,6 +24,7 @@ export default function App() {
                 <AppDataProvider>
                 <Routes>
                     {/* Public routes */}
+                    <Route path="/" element={<LandingPage />} />
                     <Route path="login" element={<Login />} />
                     <Route path="signup" element={<Signup />} />
 
@@ -32,7 +34,6 @@ export default function App() {
                             <Layout />
                         </ProtectedRoute>
                     }>
-                        <Route index element={<Navigate to="/dashboard" replace />} />
                         <Route path="dashboard" element={<Dashboard />} />
                         <Route path="donations" element={<Donations />} />
                         <Route path="donations/new" element={<DonationEntry />} />
