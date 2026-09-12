@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { AlertCircle, LogIn, LogOut, UserPlus, XCircle, RefreshCw, Filter } from 'lucide-react';
 import { apiFetch } from '../utils/api';
+import { supabase } from '../config/supabase';
 
 const EVENT_CONFIG = {
     login:         { label: 'Login',         icon: LogIn,    color: '#1E5C3A', bg: '#E8F5EE', border: 'rgba(30,92,58,0.15)' },
@@ -36,16 +37,35 @@ export default function AuditLog() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [filter, setFilter] = useState('all');
+
     const fetchLogs = useCallback(async () => {
         setLoading(true);
         setError(null);
         try {
             const typeParam = filter !== 'all' ? `&type=${filter}` : '';
-            const { data } = await apiFetch(`/api/auth/logs?limit=100${typeParam}`);
-            setLogs(data);
+            const res = await apiFetch(`/api/auth/logs?limit=100${typeParam}`);
+            const logData = Array.isArray(res) ? res : (res?.data || []);
+            setLogs(logData);
         } catch (err) {
-            console.error(err);
-            setError(err.message);
+            console.warn('API fetch failed, falling back to direct Supabase query:', err.message);
+            try {
+                let query = supabase
+                    .from('auth_events')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(100);
+
+                if (filter !== 'all') {
+                    query = query.eq('type', filter);
+                }
+
+                const { data, error: supaErr } = await query;
+                if (supaErr) throw supaErr;
+                setLogs(data || []);
+            } catch (fallbackErr) {
+                console.error('Direct Supabase fetch also failed:', fallbackErr);
+                setError(fallbackErr.message || 'Failed to fetch audit logs');
+            }
         } finally {
             setLoading(false);
         }
