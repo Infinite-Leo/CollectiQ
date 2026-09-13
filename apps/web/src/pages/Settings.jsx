@@ -291,9 +291,76 @@ export default function Settings() {
 
                     {activeTab === 'preferences' && (
                         <div className="card">
-                            <div className="card-header"><h3>Application Preferences</h3></div>
+                            <div className="card-header"><h3>Application & Interface Preferences</h3></div>
                             <div className="card-body">
                                 <form onSubmit={handleSavePreferences} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+                                    {/* Interface Experience Mode Card */}
+                                    <div
+                                        style={{
+                                            border: '2px solid #1B5E20',
+                                            borderRadius: '8px',
+                                            padding: '18px',
+                                            backgroundColor: '#F9FBF9',
+                                        }}
+                                    >
+                                        <h4 style={{ margin: '0 0 6px', fontSize: '1rem', fontWeight: 800, color: '#1B5E20' }}>
+                                            Interface Experience Mode
+                                        </h4>
+                                        <p style={{ margin: '0 0 14px', fontSize: '0.8125rem', color: '#616161' }}>
+                                            Switch between a simple touch-optimized register for senior committee members and a full analytical view.
+                                        </p>
+
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                            <div
+                                                onClick={() => {
+                                                    localStorage.setItem('collectiq_ui_mode', 'simple');
+                                                    window.dispatchEvent(new Event('collectiq_mode_changed'));
+                                                    toast.success('Switched to Simple Register Mode');
+                                                    setPreferences({ ...preferences, ui_mode: 'simple' });
+                                                }}
+                                                style={{
+                                                    padding: '14px',
+                                                    borderRadius: '6px',
+                                                    border: (preferences.ui_mode || localStorage.getItem('collectiq_ui_mode')) === 'simple' ? '2px solid #1B5E20' : '1px solid #E0E0E0',
+                                                    backgroundColor: (preferences.ui_mode || localStorage.getItem('collectiq_ui_mode')) === 'simple' ? '#E8F5E9' : '#FFFFFF',
+                                                    cursor: 'pointer',
+                                                }}
+                                            >
+                                                <div style={{ fontWeight: 800, fontSize: '0.9375rem', color: '#1B5E20', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                    {(preferences.ui_mode || localStorage.getItem('collectiq_ui_mode')) === 'simple' && '✓ '}
+                                                    Simple Mode
+                                                </div>
+                                                <p style={{ margin: '4px 0 0', fontSize: '0.75rem', color: '#424242' }}>
+                                                    Large 48px buttons, numbers first, minimal clutter. Designed for senior members & field collection.
+                                                </p>
+                                            </div>
+
+                                            <div
+                                                onClick={() => {
+                                                    localStorage.setItem('collectiq_ui_mode', 'standard');
+                                                    window.dispatchEvent(new Event('collectiq_mode_changed'));
+                                                    toast.success('Switched to Standard Analytical Mode');
+                                                    setPreferences({ ...preferences, ui_mode: 'standard' });
+                                                }}
+                                                style={{
+                                                    padding: '14px',
+                                                    borderRadius: '6px',
+                                                    border: (preferences.ui_mode || localStorage.getItem('collectiq_ui_mode')) !== 'simple' ? '2px solid #1B5E20' : '1px solid #E0E0E0',
+                                                    backgroundColor: (preferences.ui_mode || localStorage.getItem('collectiq_ui_mode')) !== 'simple' ? '#E8F5E9' : '#FFFFFF',
+                                                    cursor: 'pointer',
+                                                }}
+                                            >
+                                                <div style={{ fontWeight: 800, fontSize: '0.9375rem', color: '#1B5E20', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                    {(preferences.ui_mode || localStorage.getItem('collectiq_ui_mode')) !== 'simple' && '✓ '}
+                                                    Standard Mode
+                                                </div>
+                                                <p style={{ margin: '4px 0 0', fontSize: '0.75rem', color: '#424242' }}>
+                                                    Full analytical charts, dense financial ledgers, and comprehensive admin controls.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-6)' }}>
                                         <div className="form-group">
                                             <label className="form-label">Theme</label>

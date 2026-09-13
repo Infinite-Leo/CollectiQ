@@ -12,6 +12,7 @@
     "dependencies": {
         "@supabase/supabase-js": "^2.49.0",
         "@vis.gl/react-google-maps": "^1.7.1",
+        "leaflet": "^1.9.4",
         "lucide-react": "^0.469.0",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",

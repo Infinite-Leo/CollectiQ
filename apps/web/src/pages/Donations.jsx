@@ -264,7 +264,15 @@ export default function Donations() {
                                             {d.receipt}
                                         </span>
                                     </td>
-                                    <td style={{ fontWeight: 500 }}>{d.donor}</td>
+                                    <td style={{ fontWeight: 600 }}>
+                                        <Link
+                                            to={`/donors/${d.donor_id || d.id}`}
+                                            style={{ color: '#1B5E20', textDecoration: 'none' }}
+                                            title="View Donor Lifetime Profile"
+                                        >
+                                            {d.donor}
+                                        </Link>
+                                    </td>
                                     <td style={{ color: 'var(--text-secondary)' }}>{d.collector}</td>
                                     <td style={{ color: 'var(--text-secondary)' }}>{d.zone}</td>
                                     <td style={{ textAlign: 'right' }}>

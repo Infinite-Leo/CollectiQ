@@ -1758,9 +1758,9 @@ td .amount {
 
 .auth-container {
   display: flex;
-  width: 900px;
-  max-width: 95vw;
-  min-height: 560px;
+  width: 1060px;
+  max-width: 96vw;
+  min-height: 580px;
   background: var(--bg-surface);
   border-radius: var(--radius-2xl);
   box-shadow: var(--shadow-xl);
@@ -1888,12 +1888,14 @@ td .amount {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 48px 40px;
+  padding: 36px 32px;
+  max-height: 94vh;
+  overflow-y: auto;
 }
 
 .auth-form-wrapper {
   width: 100%;
-  max-width: 360px;
+  max-width: 540px;
 }
 
 .auth-form-header {
@@ -2392,3 +2394,528 @@ td .amount {
 .sidebar-resize-handle.active::after {
   opacity: 1;
 }
+
+/* ============================================================================
+   INDIAN ENTERPRISE GRAPHICS SYSTEM (COLLECTIQ CORE)
+   Authoritative, High-Contrast Utility Styling (Hello BPCL style)
+   ============================================================================ */
+
+:root {
+  --ie-forest-green: #1B5E20;
+  --ie-forest-green-dark: #0D3311;
+  --ie-forest-green-light: #E8F5E9;
+  --ie-warm-offwhite: #F9F9FB;
+  --ie-neutral-border: #E0E0E0;
+  --ie-neutral-border-dark: #BDBDBD;
+  --ie-saffron-accent: #E65100;
+  --ie-saffron-bg: #FFF3E0;
+  --ie-crimson-pending: #C62828;
+  --ie-crimson-bg: #FFEBEE;
+  --ie-amber-partial: #F9A825;
+  --ie-amber-bg: #FFF9C4;
+  --ie-kelly-paid: #2E7D32;
+  --ie-kelly-bg: #E8F5E9;
+}
+
+/* High-Density Spreadsheet Table Classes */
+.dense-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--ie-neutral-border);
+  background: #FFFFFF;
+  border-radius: 6px;
+}
+
+.dense-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  font-family: inherit;
+}
+
+.dense-table th {
+  background-color: #F5F5F5;
+  color: #212121;
+  font-weight: 800;
+  padding: 8px 12px;
+  border-bottom: 2px solid var(--ie-neutral-border);
+  white-space: nowrap;
+}
+
+.dense-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #EEEEEE;
+  color: #212121;
+}
+
+.dense-table tr:hover {
+  background-color: #F5F9F6;
+}
+
+/* Indian State Tags */
+.badge-paid {
+  background-color: var(--ie-kelly-bg);
+  color: var(--ie-kelly-paid);
+  border: 1px solid var(--ie-kelly-paid);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 800;
+  font-size: 0.6875rem;
+  display: inline-block;
+}
+
+.badge-partial {
+  background-color: var(--ie-amber-bg);
+  color: var(--ie-amber-partial);
+  border: 1px solid var(--ie-amber-partial);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 800;
+  font-size: 0.6875rem;
+  display: inline-block;
+}
+
+.badge-pending {
+  background-color: var(--ie-crimson-bg);
+  color: var(--ie-crimson-pending);
+  border: 1px solid var(--ie-crimson-pending);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 800;
+  font-size: 0.6875rem;
+  display: inline-block;
+}
+
+/* Saffron Highlight Line container */
+.saffron-highlight-card {
+  border-left: 6px solid var(--ie-saffron-accent) !important;
+}
+
+/* Touch targets for mobile PWA */
+.touch-target-large {
+  min-height: 48px;
+  touch-action: manipulation;
+}
+
+/* Leaflet Container overrides */
+.leaflet-container {
+  font-family: inherit !important;
+  z-index: 10;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 6px !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2) !important;
+  border: 1px solid var(--ie-neutral-border);
+}
+
+.leaflet-popup-content {
+  margin: 10px 12px !important;
+  line-height: 1.4 !important;
+}
+
+/* ============================================================================
+   Demo Role Credentials & In-App Role Switcher
+   ============================================================================ */
+
+.demo-roles-section {
+  margin-top: 24px;
+  padding: 16px;
+  background: rgba(201, 123, 42, 0.04);
+  border: 1px solid rgba(201, 123, 42, 0.22);
+  border-radius: var(--radius-lg);
+  position: relative;
+}
+
+.demo-roles-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.demo-roles-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-heading);
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.demo-roles-badge {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: rgba(201, 123, 42, 0.15);
+  color: #C97B2A;
+  border: 1px solid rgba(201, 123, 42, 0.3);
+}
+
+.demo-roles-sub {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+  line-height: 1.4;
+}
+
+.demo-roles-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+@media (max-width: 640px) {
+  .demo-roles-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.demo-role-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: all var(--transition-fast);
+  position: relative;
+  text-align: left;
+}
+
+.demo-role-card:hover {
+  border-color: var(--brand-saffron);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(201, 123, 42, 0.12);
+}
+
+.demo-role-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.demo-role-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.demo-role-avatar {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.demo-role-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.demo-role-name {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.demo-role-persona {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+}
+
+.demo-role-badge {
+  font-size: 0.625rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid currentColor;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.demo-role-scope {
+  font-size: 0.6875rem;
+  color: var(--text-secondary);
+  line-height: 1.3;
+}
+
+.demo-role-creds-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-surface-elevated, rgba(0, 0, 0, 0.03));
+  border: 1px dashed var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.6875rem;
+  color: var(--text-secondary);
+}
+
+.demo-copy-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.6875rem;
+  font-family: var(--font-sans);
+  transition: all var(--transition-fast);
+  border-radius: 3px;
+}
+
+.demo-copy-btn:hover {
+  color: var(--brand-saffron);
+  background: rgba(201, 123, 42, 0.08);
+}
+
+.demo-role-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.demo-action-login-btn {
+  flex: 1;
+  padding: 6px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: all var(--transition-fast);
+  color: white;
+}
+
+.demo-action-login-btn:hover:not(:disabled) {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+
+.demo-action-fill-btn {
+  padding: 6px 8px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-default);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.demo-action-fill-btn:hover {
+  background: var(--bg-hover, rgba(0, 0, 0, 0.03));
+  color: var(--text-primary);
+  border-color: var(--border-focus);
+}
+
+/* Header Role Switcher styles */
+.role-switcher-trigger {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 10px;
+  background: rgba(201, 123, 42, 0.08);
+  border: 1px solid rgba(201, 123, 42, 0.25);
+  border-radius: 20px;
+  color: var(--text-primary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.role-switcher-trigger:hover {
+  background: rgba(201, 123, 42, 0.16);
+  border-color: var(--brand-saffron);
+  box-shadow: 0 2px 8px rgba(201, 123, 42, 0.15);
+}
+
+.role-switcher-badge {
+  font-size: 0.5625rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  background: #C97B2A;
+  color: white;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.role-switcher-icon {
+  font-size: 0.9375rem;
+}
+
+.role-switcher-title {
+  white-space: nowrap;
+}
+
+.role-switcher-chevron {
+  color: var(--text-muted);
+  transition: transform var(--transition-fast);
+}
+
+.role-switcher-chevron.open {
+  transform: rotate(180deg);
+}
+
+.role-switcher-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 320px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  z-index: 1000;
+  overflow: hidden;
+  animation: fadeInDown 0.2s ease;
+}
+
+.role-switcher-header {
+  padding: 12px 14px;
+  background: linear-gradient(135deg, rgba(201, 123, 42, 0.08), rgba(212, 175, 55, 0.04));
+  border-bottom: 1px solid var(--border-light);
+}
+
+.role-switcher-header-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-heading);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.role-switcher-header-sub {
+  display: block;
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.role-switcher-list {
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.role-switcher-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-md);
+  background: transparent;
+  border: 1px solid transparent;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.role-switcher-item:hover:not(:disabled) {
+  background: var(--bg-hover, rgba(0, 0, 0, 0.03));
+  border-color: var(--border-light);
+}
+
+.role-switcher-item.active {
+  background: rgba(201, 123, 42, 0.07);
+  border-color: rgba(201, 123, 42, 0.25);
+}
+
+.role-switcher-item-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.role-switcher-item-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.role-switcher-item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.role-switcher-item-name {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.role-switcher-item-badge {
+  font-size: 0.5625rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid currentColor;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.role-switcher-item-desc {
+  display: block;
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.role-switcher-item-action {
+  width: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.role-switcher-arrow {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  opacity: 0.5;
+}
+
+.role-switcher-spinner {
+  animation: spin 0.8s linear infinite;
+  color: var(--brand-saffron);
+}
+
+.role-switcher-footer {
+  padding: 8px 14px;
+  background: var(--bg-surface-elevated, rgba(0, 0, 0, 0.02));
+  border-top: 1px solid var(--border-light);
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+}

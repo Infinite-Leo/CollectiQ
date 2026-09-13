@@ -67,6 +67,15 @@ npm run dev:web    # on http://localhost:5173
 npm run dev:api    # on http://localhost:3001
 ```
 
+### 🔑 Demo Login Credentials (SRS Roles)
+
+| Role | Role Title | Demo Email | Password | Primary Scope & Access | Landing Page |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 👑 **President** | Club President | `president@collectiq.com` | `Password@123` | Full Administrative Control, Budget & Expense Approvals, Audit Logs | `/dashboard` |
+| 📋 **Secretary** | General Secretary | `secretary@collectiq.com` | `Password@123` | Member Directory, Collection Drives, Volunteer Logistics & Reports | `/dashboard` |
+| 💰 **Cashier** | Finance Cashier | `cashier@collectiq.com` | `Password@123` | Cash Counter Tally, Daily Reconciliations, Physical Ledger Checks | `/finance` |
+| 📱 **Collector** | Field Collector | `collector@collectiq.com` | `Password@123` | Field Collection PWA, GPS Tracking, Instant WhatsApp / QR Receipts | `/collector` |
+
 ### Environment File (.env)
 ```
 # Backend (apps/api reads from root .env)

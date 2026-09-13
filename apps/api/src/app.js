@@ -17,6 +17,14 @@ import dashboardRoutes from './routes/dashboard.routes.js';
 import fraudRoutes from './routes/fraud.routes.js';
 import auditRoutes from './routes/audit.routes.js';
 import authRoutes from './routes/auth.routes.js';
+import collectionRoutes from './routes/collection.routes.js';
+import collectorPriorityRoutes from './routes/collectorPriority.routes.js';
+import financeRoutes from './routes/finance.routes.js';
+import donorProfileRoutes from './routes/donorProfile.routes.js';
+import visitScheduleRoutes from './routes/visitSchedule.routes.js';
+import importRoutes from './routes/import.routes.js';
+import exportRoutes from './routes/export.routes.js';
+import mlRoutes from './routes/ml.routes.js';
 import { seedDevData } from './seed.js';
 
 const app = express();
@@ -76,6 +84,35 @@ app.use('/api/collectors', collectorRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/fraud', fraudRoutes);
 app.use('/api/audit', auditRoutes);
+
+// Indian Operational & Community Finance Layer (v1 and alias)
+app.use('/api/v1/collection', collectionRoutes);
+app.use('/api/collection', collectionRoutes);
+
+app.use('/api/v1/collector', collectorPriorityRoutes);
+app.use('/api/collector', collectorPriorityRoutes);
+
+app.use('/api/v1/finance', financeRoutes);
+app.use('/api/finance', financeRoutes);
+
+// Donor Profile & Duplicates
+app.use('/api/v1/donors-profile', donorProfileRoutes);
+app.use('/api/donors-profile', donorProfileRoutes);
+app.use('/api/v1/donors', donorProfileRoutes);
+
+// Visit Scheduling
+app.use('/api/v1/visits', visitScheduleRoutes);
+app.use('/api/visits', visitScheduleRoutes);
+
+// Bulk Import & Tabular Export
+app.use('/api/v1/import', importRoutes);
+app.use('/api/import', importRoutes);
+app.use('/api/v1/export', exportRoutes);
+app.use('/api/export', exportRoutes);
+
+// Machine Learning & Spatial Intelligence
+app.use('/api/v1/ml', mlRoutes);
+app.use('/api/ml', mlRoutes);
 
 // ── Error Handler ────────────────────────────────────────────────
 app.use(errorHandler);

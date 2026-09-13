@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Bell, Search, ChevronDown, User, Settings, LogOut, ShieldAlert, AlertTriangle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import RoleSwitcher from '../RoleSwitcher';
 
 const notifications = [
     { id: 1, title: 'New Fraud Flag', desc: 'GPS anomaly detected for Ravi Kumar', time: '2 min ago', type: 'warning' },
@@ -35,7 +36,11 @@ export default function Header() {
 
     const handleSearch = (e) => {
         if (e.key === 'Enter' && searchValue.trim()) {
-            navigate(`/donations?q=${encodeURIComponent(searchValue.trim())}`);
+            if (displayRole === 'collector') {
+                navigate(`/collector`);
+            } else {
+                navigate(`/donations?q=${encodeURIComponent(searchValue.trim())}`);
+            }
             setSearchValue('');
         }
     };
@@ -46,7 +51,20 @@ export default function Header() {
                 <h1>Durga Nagar Club</h1>
                 <div className="event-badge">
                     <span className="event-badge-dot" />
-                    Durga Puja 2024 — Active
+                    Durga Puja 2026 — Active
+                </div>
+                <div style={{
+                    padding: '3px 8px',
+                    borderRadius: '6px',
+                    fontSize: '0.6875rem',
+                    fontWeight: 800,
+                    backgroundColor: displayRole === 'collector' ? '#EDE9FE' : (displayRole === 'cashier' ? '#D1FAE5' : '#FEF3C7'),
+                    color: displayRole === 'collector' ? '#6D28D9' : (displayRole === 'cashier' ? '#047857' : '#B45309'),
+                    border: `1px solid ${displayRole === 'collector' ? '#C4B5FD' : (displayRole === 'cashier' ? '#6EE7B7' : '#FCD34D')}`,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.4px',
+                }}>
+                    {displayRole} Workspace
                 </div>
             </div>
 
@@ -148,6 +166,9 @@ export default function Header() {
                         </div>
                     )}
                 </div>
+
+                {/* Quick Role Switcher */}
+                <RoleSwitcher />
 
                 {/* User Menu */}
                 <div style={{ position: 'relative' }} ref={userRef}>

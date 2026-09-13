@@ -64,6 +64,29 @@ export function AuthProvider({ children }) {
         return body;
     }, []);
 
+    const demoLogin = useCallback(async (role) => {
+        const res = await fetch(`${API_BASE}/api/auth/demo-login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ role }),
+        });
+
+        const body = await res.json();
+
+        if (!res.ok) {
+            throw new Error(body.error || 'Demo sign-in failed');
+        }
+
+        if (body.session) {
+            await supabase.auth.setSession({
+                access_token: body.session.access_token,
+                refresh_token: body.session.refresh_token,
+            });
+        }
+
+        return body;
+    }, []);
+
     const signup = useCallback(async (email, password, fullName) => {
         // Route through backend API — uses admin.createUser with email_confirm: true
         // so the user is auto-confirmed and can log in immediately
@@ -129,6 +152,7 @@ export function AuthProvider({ children }) {
         session,
         loading,
         login,
+        demoLogin,
         signup,
         signInWithGoogle,
         logout,

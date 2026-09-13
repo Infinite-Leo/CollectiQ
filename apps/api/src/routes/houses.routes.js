@@ -65,7 +65,7 @@ router.post('/bulk', roleGuard(['president', 'secretary', 'owner']), async (req,
 });
 
 // PATCH /api/houses/:id — Update house
-router.patch('/:id', roleGuard(['president', 'secretary', 'owner']), async (req, res, next) => {
+router.patch('/:id', roleGuard(['president', 'secretary', 'collector', 'owner']), async (req, res, next) => {
     try {
         const { data, error } = await supabaseAdmin
             .from('houses')

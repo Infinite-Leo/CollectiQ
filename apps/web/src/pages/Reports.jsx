@@ -1,210 +1,341 @@
-import { FileText, Download, TrendingUp, Users, MapPin } from 'lucide-react';
+import { useState } from 'react';
+import {
+    FileText,
+    Download,
+    TrendingUp,
+    Users,
+    MapPin,
+    Printer,
+    Table,
+    Calendar,
+    CheckCircle,
+    IndianRupee,
+    Wallet,
+} from 'lucide-react';
 import { useToast } from '../components/ui/Toast';
 import { useAppData } from '../context/AppDataContext';
+import { formatIndianCurrency } from '../utils/indianNumberFormat';
 
-function generateFinancialCSV() {
-    const rows = [
-        ['Date', 'Total Collected', 'Cash', 'UPI', 'Bank Transfer', 'Dues'],
-        ['2026-10-07', '48500', '23000', '15500', '10000', '8500'],
-        ['2026-10-06', '42300', '19700', '13200', '9400', '5200'],
-        ['2026-10-05', '51200', '28000', '14800', '8400', '3200'],
-        ['2026-10-04', '38900', '17500', '12600', '8800', '6100'],
-        ['2026-10-03', '45600', '22100', '15900', '7600', '4800'],
-    ];
-    return rows.map(r => r.join(',')).join('\n');
-}
-
-function generateCollectorCSV() {
-    const rows = [
-        ['Collector', 'Total Collected', 'Donation Count', 'Avg Amount', 'Zones', 'Dues'],
-        ['Ravi Kumar', '48500', '32', '1516', 'Zone A, Zone D', '8500'],
-        ['Priya Sen', '42300', '28', '1511', 'Zone B', '3200'],
-        ['Manoj Ghosh', '38900', '25', '1556', 'Zone A', '5100'],
-        ['Ankit Sharma', '35600', '22', '1618', 'Zone C', '4200'],
-        ['Sneha Das', '31200', '20', '1560', 'Zone B', '2800'],
-    ];
-    return rows.map(r => r.join(',')).join('\n');
-}
-
-function generateZoneCSV() {
-    const rows = [
-        ['Zone', 'Total Houses', 'Collected', 'Pending', 'Amount Collected', 'Penetration %'],
-        ['Zone A', '120', '95', '25', '185000', '79'],
-        ['Zone B', '88', '62', '26', '124000', '70'],
-        ['Zone C', '65', '48', '17', '86000', '74'],
-        ['Zone D', '42', '28', '14', '52000', '67'],
-    ];
-    return rows.map(r => r.join(',')).join('\n');
-}
-
-function downloadCSV(content, filename) {
-    const blob = new Blob([content], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
-}
-
-const reportCards = [
+const EXPORT_DATASETS = [
     {
-        title: 'Financial Summary',
-        description: 'Daily collection totals, breakdown by mode, and expenses.',
-        icon: TrendingUp,
-        color: 'saffron',
-        bgColor: 'var(--brand-saffron-light)',
-        iconColor: 'var(--brand-saffron-dark)',
-        csvFn: () => generateFinancialCSV(),
-        filename: 'financial_summary.csv',
-    },
-    {
-        title: 'Collector Performance',
-        description: 'Individual collection rankings, zones covered, and efficiency.',
+        title: 'Complete Donor Register',
+        description: 'All registered households and donors with phone, address, and expected amounts.',
+        endpoint: '/api/v1/export/donors',
+        filename: 'donors_directory.csv',
         icon: Users,
-        color: 'info',
-        bgColor: 'var(--color-info-light)',
-        iconColor: 'var(--color-info)',
-        csvFn: () => generateCollectorCSV(),
-        filename: 'collector_performance.csv',
+        color: '#1B5E20',
+        bg: '#E8F5E9',
     },
     {
-        title: 'Zone Analysis',
-        description: 'Collection penetration by zone/ward and pending houses.',
+        title: 'Collection Transactions Ledger',
+        description: 'Every receipt generated, payment mode, collector, and timestamp.',
+        endpoint: '/api/v1/export/collections',
+        filename: 'collections_ledger.csv',
+        icon: TrendingUp,
+        color: '#1565C0',
+        bg: '#E3F2FD',
+    },
+    {
+        title: 'Outstanding Dues & Follow-ups',
+        description: 'Unpaid and partial accounts needing collector visit follow-up.',
+        endpoint: '/api/v1/export/pending',
+        filename: 'unpaid_pending_dues.csv',
         icon: MapPin,
-        color: 'green',
-        bgColor: 'var(--brand-green-light)',
-        iconColor: 'var(--brand-green-dark)',
-        csvFn: () => generateZoneCSV(),
-        filename: 'zone_analysis.csv',
+        color: '#C62828',
+        bg: '#FFEBEE',
+    },
+    {
+        title: 'Cashier Handover Audit Register',
+        description: 'Field collector declared cash vs physical cashier vault verification records.',
+        endpoint: '/api/v1/export/cash-handover',
+        filename: 'cash_handover_audit.csv',
+        icon: Wallet,
+        color: '#E65100',
+        bg: '#FFF3E0',
     },
 ];
 
-const generatedReports = [
-    { name: 'End of Day - Oct 7', by: 'System', date: 'Oct 7, 11:59 PM', csvFn: () => generateFinancialCSV(), filename: 'eod_oct7.csv' },
-    { name: 'Weekly Summary (Oct 1-7)', by: 'Arjun Das', date: 'Oct 8, 10:00 AM', csvFn: () => generateFinancialCSV(), filename: 'weekly_oct1_7.csv' },
+const YOY_METRICS = [
+    { metric: 'Total Campaign Collections', y2024: 380000, y2025: 495000, y2026: 620000, growth: '+25.2%' },
+    { metric: 'Contributing Households', y2024: 185, y2025: 220, y2026: 265, growth: '+20.4%' },
+    { metric: 'Average Contribution per Family', y2024: 2054, y2025: 2250, y2026: 2339, growth: '+3.9%' },
+    { metric: 'UPI & Digital Payment Adoption', y2024: 22, y2025: 41, y2026: 68, growth: '+65.8%', unit: '%' },
+    { metric: 'Outstanding Dues Remaining', y2024: 45000, y2025: 35000, y2026: 18500, growth: '-47.1% (Improved)' },
 ];
 
 export default function Reports() {
     const toast = useToast();
     const { isLoadingAppData } = useAppData();
+    const [activeTab, setActiveTab] = useState('exports'); // 'exports' | 'yoy' | 'summary'
 
-    const handleDownload = (csvFn, filename) => {
-        downloadCSV(csvFn(), filename);
-        toast.success(`${filename} downloaded`);
+    const handlePrint = () => {
+        window.print();
     };
 
     return (
-        <div className="page-body">
-            <div className="card-header" style={{ border: 'none', padding: '0 0 var(--space-6) 0', background: 'transparent' }}>
-                <div>
-                    <h2 style={{ fontFamily: 'Playfair Display', fontSize: '1.25rem', fontWeight: 700, color: '#2C1A0E' }}>Reports & Analytics</h2>
-                    <p style={{ fontFamily: 'Sora', fontSize: '0.875rem', color: '#7A5A3A', marginTop: '4px' }}>
-                        Export data and view detailed performance metrics.
-                    </p>
+        <div style={{ maxWidth: '1240px', margin: '0 auto', paddingBottom: '40px' }}>
+            <style>
+                {`
+                @media print {
+                    nav, header, aside, .no-print, button, .app-sidebar {
+                        display: none !important;
+                    }
+                    body {
+                        background: #FFFFFF !important;
+                        color: #000000 !important;
+                    }
+                    .print-only {
+                        display: block !important;
+                    }
+                    .printable-sheet {
+                        box-shadow: none !important;
+                        border: none !important;
+                        padding: 0 !important;
+                    }
+                }
+                .print-only {
+                    display: none;
+                }
+                `}
+            </style>
+
+            {/* Official Committee Letterhead for Print */}
+            <div className="print-only" style={{ marginBottom: '24px', borderBottom: '2px solid #000', paddingBottom: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                        <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 800 }}>DURGA PUJA SAMITY 2026</h1>
+                        <p style={{ margin: '2px 0', fontSize: '0.875rem' }}>Ballygunge & Gariahat Ward Coordination Committee, Kolkata</p>
+                    </div>
+                    <div style={{ textAlign: 'right', fontSize: '0.8125rem' }}>
+                        <div>Date: {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
+                        <div>Generated by CollectiQ Finance Engine</div>
+                    </div>
                 </div>
             </div>
 
-            <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-                gap: 'var(--space-6)',
-                marginBottom: 'var(--space-8)'
-            }}>
-                {isLoadingAppData ? (
-                    Array.from({ length: 3 }).map((_, idx) => (
-                        <div key={`report-card-skeleton-${idx}`} className="card" style={{ padding: 'var(--space-6)' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-4)' }}>
-                                <div className="skeleton" style={{ width: '48px', height: '48px', borderRadius: '12px' }} />
-                                <div className="skeleton skeleton-text" style={{ width: '50px', height: '20px' }} />
-                            </div>
-                            <div className="skeleton skeleton-text" style={{ width: '160px', height: '18px', marginBottom: '8px' }} />
-                            <div className="skeleton skeleton-text" style={{ width: '100%', height: '12px' }} />
-                        </div>
-                    ))
-                ) : (
-                    reportCards.map((r) => {
-                        const Icon = r.icon;
-                        return (
-                            <div key={r.title} className="card" style={{ padding: 'var(--space-6)' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-4)' }}>
-                                    <div style={{
-                                        padding: '12px',
-                                        borderRadius: 'var(--radius-md)',
-                                        background: r.bgColor,
-                                        color: r.iconColor,
-                                    }}>
-                                        <Icon size={24} />
-                                    </div>
-                                    <button
-                                        className="btn btn-secondary"
-                                        style={{ fontSize: '0.75rem', height: '32px' }}
-                                        onClick={() => handleDownload(r.csvFn, r.filename)}
-                                    >
-                                        <Download size={14} /> CSV
-                                    </button>
-                                </div>
-                                <h3 style={{ fontFamily: 'Playfair Display', fontSize: '1rem', fontWeight: 700, color: '#2C1A0E', marginBottom: '4px' }}>{r.title}</h3>
-                                <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: 'var(--space-4)' }}>
-                                    {r.description}
-                                </p>
-                                <div style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>Last updated: Just now</div>
-                            </div>
-                        );
-                    })
-                )}
+            {/* Screen Header */}
+            <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
+                <div>
+                    <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1B5E20', margin: 0 }}>
+                        Reports & Year-over-Year Analytics
+                    </h1>
+                    <p style={{ fontSize: '0.875rem', color: '#616161', marginTop: '4px' }}>
+                        Export verified committee registers or compare performance across festival years
+                    </p>
+                </div>
+
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <button
+                        type="button"
+                        onClick={handlePrint}
+                        style={{
+                            padding: '10px 16px',
+                            minHeight: '44px',
+                            backgroundColor: '#FFFFFF',
+                            border: '1px solid #BDBDBD',
+                            color: '#212121',
+                            fontWeight: 700,
+                            fontSize: '0.8125rem',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                        }}
+                    >
+                        <Printer size={16} />
+                        <span>Print Official Report</span>
+                    </button>
+                </div>
             </div>
 
-            <div>
-                <h3 style={{ fontFamily: 'Playfair Display', fontSize: '1rem', fontWeight: 700, color: '#2C1A0E', marginBottom: 'var(--space-4)' }}>Generated Reports</h3>
-                <div className="card">
+            {/* Navigation Tabs */}
+            <div
+                className="no-print"
+                style={{
+                    display: 'flex',
+                    borderBottom: '2px solid #E0E0E0',
+                    backgroundColor: '#FFFFFF',
+                    borderRadius: '8px 8px 0 0',
+                    marginBottom: '20px',
+                    overflowX: 'auto',
+                }}
+            >
+                <button
+                    type="button"
+                    onClick={() => setActiveTab('exports')}
+                    style={{
+                        padding: '12px 18px',
+                        minHeight: '48px',
+                        border: 'none',
+                        borderBottom: activeTab === 'exports' ? '4px solid #1B5E20' : '4px solid transparent',
+                        backgroundColor: activeTab === 'exports' ? '#F9F9FB' : '#FFFFFF',
+                        color: activeTab === 'exports' ? '#1B5E20' : '#616161',
+                        fontWeight: 800,
+                        fontSize: '0.875rem',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                    }}
+                >
+                    <Download size={16} />
+                    <span>Download Registers (CSV)</span>
+                </button>
+
+                <button
+                    type="button"
+                    onClick={() => setActiveTab('yoy')}
+                    style={{
+                        padding: '12px 18px',
+                        minHeight: '48px',
+                        border: 'none',
+                        borderBottom: activeTab === 'yoy' ? '4px solid #1B5E20' : '4px solid transparent',
+                        backgroundColor: activeTab === 'yoy' ? '#F9F9FB' : '#FFFFFF',
+                        color: activeTab === 'yoy' ? '#1B5E20' : '#616161',
+                        fontWeight: 800,
+                        fontSize: '0.875rem',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                    }}
+                >
+                    <Table size={16} />
+                    <span>Year-over-Year (YoY) Comparison</span>
+                </button>
+            </div>
+
+            {/* TAB 1: CSV EXPORT REGISTERS */}
+            {activeTab === 'exports' && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+                    {EXPORT_DATASETS.map((ds) => {
+                        const Icon = ds.icon;
+                        return (
+                            <div
+                                key={ds.title}
+                                style={{
+                                    backgroundColor: '#FFFFFF',
+                                    border: '1px solid #E0E0E0',
+                                    borderRadius: '8px',
+                                    padding: '20px',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    justifyContent: 'space-between',
+                                    gap: '14px',
+                                    boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                                }}
+                            >
+                                <div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                                        <div style={{ padding: '10px', borderRadius: '6px', backgroundColor: ds.bg, color: ds.color }}>
+                                            <Icon size={22} />
+                                        </div>
+                                        <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: '#212121' }}>
+                                            {ds.title}
+                                        </h3>
+                                    </div>
+                                    <p style={{ fontSize: '0.8125rem', color: '#616161', margin: 0, lineHeight: 1.5 }}>
+                                        {ds.description}
+                                    </p>
+                                </div>
+
+                                <a
+                                    href={ds.endpoint}
+                                    download={ds.filename}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    style={{
+                                        minHeight: '44px',
+                                        padding: '10px 14px',
+                                        backgroundColor: '#1B5E20',
+                                        color: '#FFFFFF',
+                                        fontWeight: 800,
+                                        fontSize: '0.8125rem',
+                                        borderRadius: '6px',
+                                        textDecoration: 'none',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '6px',
+                                    }}
+                                >
+                                    <Download size={15} />
+                                    <span>Download {ds.filename}</span>
+                                </a>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+
+            {/* TAB 2: YEAR-OVER-YEAR COMPARISON */}
+            {activeTab === 'yoy' && (
+                <div
+                    className="printable-sheet"
+                    style={{
+                        backgroundColor: '#FFFFFF',
+                        border: '1px solid #E0E0E0',
+                        borderRadius: '8px',
+                        overflow: 'hidden',
+                        boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+                    }}
+                >
+                    <div style={{ padding: '16px 20px', backgroundColor: '#F9F9FB', borderBottom: '1px solid #E0E0E0' }}>
+                        <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: '#1B5E20' }}>
+                            Festival Year Performance Comparison (2024 – 2026)
+                        </h3>
+                        <span style={{ fontSize: '0.75rem', color: '#616161' }}>
+                            Historical benchmarks demonstrating festival collection trajectory
+                        </span>
+                    </div>
+
                     <div className="table-wrapper">
-                        <table>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
                             <thead>
-                                <tr>
-                                    <th style={{ width: '40%' }}>Report Name</th>
-                                    <th>Generated By</th>
-                                    <th>Date</th>
-                                    <th>Action</th>
+                                <tr style={{ backgroundColor: '#F5F5F5', borderBottom: '2px solid #E0E0E0', textAlign: 'left' }}>
+                                    <th style={{ padding: '12px 16px', fontWeight: 800, color: '#212121' }}>Key Metric</th>
+                                    <th style={{ padding: '12px 16px', fontWeight: 800, color: '#212121', textAlign: 'right' }}>2024 Festival</th>
+                                    <th style={{ padding: '12px 16px', fontWeight: 800, color: '#212121', textAlign: 'right' }}>2025 Festival</th>
+                                    <th style={{ padding: '12px 16px', fontWeight: 800, color: '#1B5E20', textAlign: 'right' }}>2026 Current</th>
+                                    <th style={{ padding: '12px 16px', fontWeight: 800, color: '#2E7D32', textAlign: 'right' }}>Growth Trend</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {isLoadingAppData ? (
-                                    Array.from({ length: 3 }).map((_, idx) => (
-                                        <tr key={`generated-report-skeleton-${idx}`}>
-                                            <td><div className="skeleton skeleton-text" style={{ width: '200px' }} /></td>
-                                            <td><div className="skeleton skeleton-text" style={{ width: '120px' }} /></td>
-                                            <td><div className="skeleton skeleton-text" style={{ width: '120px' }} /></td>
-                                            <td><div className="skeleton skeleton-text" style={{ width: '60px' }} /></td>
-                                        </tr>
-                                    ))
-                                ) : generatedReports.map((r, i) => (
-                                    <tr key={i}>
-                                        <td>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', fontWeight: 500 }}>
-                                                <FileText size={16} style={{ color: 'var(--text-muted)' }} />
-                                                {r.name}
-                                            </div>
+                                {YOY_METRICS.map((m, idx) => (
+                                    <tr key={m.metric} style={{ borderBottom: '1px solid #E0E0E0', backgroundColor: idx % 2 === 0 ? '#FFFFFF' : '#FAFAFA' }}>
+                                        <td style={{ padding: '14px 16px', fontWeight: 700, color: '#212121' }}>{m.metric}</td>
+                                        <td style={{ padding: '14px 16px', textAlign: 'right', color: '#616161' }}>
+                                            {m.unit === '%' ? `${m.y2024}%` : formatIndianCurrency(m.y2024)}
                                         </td>
-                                        <td>{r.by}</td>
-                                        <td style={{ color: 'var(--text-secondary)' }}>{r.date}</td>
-                                        <td>
-                                            <button
-                                                className="btn btn-ghost"
-                                                style={{ color: 'var(--brand-saffron)', fontSize: '0.75rem', padding: '4px 8px', height: 'auto' }}
-                                                onClick={() => handleDownload(r.csvFn, r.filename)}
-                                            >
-                                                <Download size={14} />
-                                                Download
-                                            </button>
+                                        <td style={{ padding: '14px 16px', textAlign: 'right', color: '#424242' }}>
+                                            {m.unit === '%' ? `${m.y2025}%` : formatIndianCurrency(m.y2025)}
+                                        </td>
+                                        <td style={{ padding: '14px 16px', textAlign: 'right', fontWeight: 800, color: '#1B5E20', fontSize: '0.9375rem' }}>
+                                            {m.unit === '%' ? `${m.y2026}%` : formatIndianCurrency(m.y2026)}
+                                        </td>
+                                        <td style={{ padding: '14px 16px', textAlign: 'right', fontWeight: 800, color: '#2E7D32' }}>
+                                            {m.growth}
                                         </td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
                     </div>
+
+                    {/* Committee Sign-off for Print */}
+                    <div className="print-only" style={{ marginTop: '60px', padding: '0 20px', display: 'flex', justifyContent: 'space-between' }}>
+                        <div style={{ textAlign: 'center', width: '200px', borderTop: '1px solid #000', paddingTop: '8px' }}>
+                            <div style={{ fontWeight: 700 }}>Treasurer / Cashier</div>
+                            <div style={{ fontSize: '0.75rem' }}>Signature & Date</div>
+                        </div>
+                        <div style={{ textAlign: 'center', width: '200px', borderTop: '1px solid #000', paddingTop: '8px' }}>
+                            <div style={{ fontWeight: 700 }}>General Secretary</div>
+                            <div style={{ fontSize: '0.75rem' }}>Signature & Date</div>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 }

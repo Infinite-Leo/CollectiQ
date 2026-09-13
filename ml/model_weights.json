@@ -1,0 +1,80 @@
+{
+  "model_version": "1.0.0",
+  "training_date": "2026-09-11",
+  "sample_size": 3000,
+  "features": [
+    "donation_2023",
+    "donation_2024",
+    "donation_2025",
+    "consistency_score",
+    "earning_members",
+    "prior_active_sum",
+    "has_donated_2025",
+    "yoy_growth_rate",
+    "locality_enc",
+    "house_type_enc",
+    "mode_enc"
+  ],
+  "evaluation_metrics": {
+    "Ridge Linear Regression": {
+      "R2": 0.9738,
+      "MAE": 187.91,
+      "RMSE": 352.04
+    },
+    "Decision Tree Regressor": {
+      "R2": 0.9652,
+      "MAE": 185.29,
+      "RMSE": 405.94
+    },
+    "Random Forest Regressor": {
+      "R2": 0.9805,
+      "MAE": 125.25,
+      "RMSE": 303.57
+    }
+  },
+  "top_features": [
+    "prior_active_sum",
+    "donation_2024",
+    "donation_2025",
+    "donation_2023",
+    "earning_members"
+  ],
+  "feature_importances": {
+    "prior_active_sum": 0.5064,
+    "donation_2024": 0.1845,
+    "donation_2025": 0.1524,
+    "donation_2023": 0.1439,
+    "earning_members": 0.0047,
+    "locality_enc": 0.0024,
+    "consistency_score": 0.0015,
+    "mode_enc": 0.0014,
+    "has_donated_2025": 0.0012,
+    "house_type_enc": 0.0011,
+    "yoy_growth_rate": 0.0005
+  },
+  "linear_intercept": 1446.75,
+  "linear_coefficients": {
+    "donation_2023": -0.0325,
+    "donation_2024": -0.0004,
+    "donation_2025": 0.3232,
+    "consistency_score": -359.6209,
+    "earning_members": 10.184,
+    "prior_active_sum": 0.2902,
+    "has_donated_2025": -1364.8694,
+    "yoy_growth_rate": 378.0427,
+    "locality_enc": 94.0305,
+    "house_type_enc": 18.3319,
+    "mode_enc": -7.5586
+  },
+  "locality_coefficients": {
+    "TIER_1": 1.25,
+    "TIER_2": 1.0,
+    "TIER_3": 0.8
+  },
+  "house_type_multipliers": {
+    "INDEPENDENT_HOUSE": 1.3,
+    "APARTMENT_FLAT": 1.0,
+    "COMMERCIAL_SHOP": 1.6,
+    "CLINIC_PROFESSIONAL": 1.45
+  }
+}

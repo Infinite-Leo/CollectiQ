@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { supabaseAdmin } from '../config/supabase.js';
 import { resolveUserContext } from '../services/userContext.js';
+import { DEMO_ACCOUNTS, seedDemoAccounts } from '../seed.js';
 
 const router = Router();
 
@@ -19,6 +20,108 @@ async function logAuthEvent(type, { email, fullName, ip, userAgent, userId }) {
         console.error('Failed to log auth event:', err.message);
     }
 }
+
+// Helper to determine landing page based on role
+function getRoleRedirect(role) {
+    if (role === 'collector') return '/collector';
+    if (role === 'cashier') return '/finance';
+    return '/dashboard';
+}
+
+// GET /api/auth/demo-credentials — Public SRS Demo Role Credentials
+router.get('/demo-credentials', (req, res) => {
+    res.json({
+        success: true,
+        accounts: DEMO_ACCOUNTS.map(acc => ({
+            role: acc.role,
+            roleTitle: acc.roleTitle,
+            name: acc.name,
+            email: acc.email,
+            password: acc.password,
+            phone: acc.phone,
+            icon: acc.icon,
+            badge: acc.badge,
+            scope: acc.scope,
+            redirect: acc.redirect,
+            description: acc.description,
+        })),
+    });
+});
+
+// POST /api/auth/demo-login — 1-click Instant Demo Role Sign In
+router.post('/demo-login', async (req, res, next) => {
+    try {
+        const { role, email } = req.body;
+
+        const target = DEMO_ACCOUNTS.find(
+            acc => (role && acc.role === role) || (email && acc.email.toLowerCase() === email.toLowerCase())
+        );
+
+        if (!target) {
+            return res.status(400).json({ error: 'Invalid or unsupported demo role' });
+        }
+
+        let { data, error } = await supabaseAdmin.auth.signInWithPassword({
+            email: target.email,
+            password: target.password,
+        });
+
+        // Self-healing: if login fails, seed demo accounts and retry once
+        if (error) {
+            console.warn(`⚠️ Demo sign-in for ${target.email} failed (${error.message}). Attempting self-healing...`);
+            await seedDemoAccounts();
+
+            const retry = await supabaseAdmin.auth.signInWithPassword({
+                email: target.email,
+                password: target.password,
+            });
+
+            if (retry.error) {
+                return res.status(401).json({ error: `Demo authentication failed: ${retry.error.message}` });
+            }
+
+            data = retry.data;
+        }
+
+        let context = await resolveUserContext(data.user, { autoAssignIfSingleClub: true });
+
+        if (context.membershipCreated || context.appMetadataUpdated) {
+            const refreshed = await supabaseAdmin.auth.signInWithPassword({
+                email: target.email,
+                password: target.password,
+            });
+
+            if (!refreshed.error) {
+                data = refreshed.data;
+                context = await resolveUserContext(data.user, { autoAssignIfSingleClub: true });
+            }
+        }
+
+        logAuthEvent('login', {
+            email: target.email,
+            fullName: target.name,
+            userId: data.user.id,
+            ip: req.ip,
+            userAgent: req.headers['user-agent'],
+        });
+
+        const assignedRole = context.userRole || target.role;
+
+        res.json({
+            user: {
+                id: data.user.id,
+                email: data.user.email,
+                full_name: data.user.user_metadata?.full_name || target.name,
+                role: assignedRole,
+                club_id: context.clubId,
+            },
+            session: data.session,
+            redirect: target.redirect || getRoleRedirect(assignedRole),
+        });
+    } catch (err) {
+        next(err);
+    }
+});
 
 // GET /api/auth/logs — Fetch auth event history from Supabase
 router.get('/logs', async (req, res, next) => {
@@ -89,15 +192,18 @@ router.post('/signup', async (req, res, next) => {
             userAgent: req.headers['user-agent'],
         });
 
+        const assignedRole = context.userRole || 'member';
+
         res.status(201).json({
             user: {
                 id: data.user.id,
                 email: data.user.email,
                 full_name: data.user.user_metadata?.full_name,
-                role: context.userRole || 'member',
+                role: assignedRole,
                 club_id: context.clubId,
             },
             session: session.session,
+            redirect: getRoleRedirect(assignedRole),
         });
     } catch (err) {
         next(err);
@@ -117,6 +223,23 @@ router.post('/login', async (req, res, next) => {
             email,
             password,
         });
+
+        // Self-healing: if sign in failed on a demo account, re-seed and retry once
+        if (error) {
+            const isDemo = DEMO_ACCOUNTS.some(d => d.email.toLowerCase() === email.toLowerCase());
+            if (isDemo) {
+                console.warn(`⚠️ Standard login failed for demo account ${email}. Attempting self-healing...`);
+                await seedDemoAccounts();
+                const retry = await supabaseAdmin.auth.signInWithPassword({
+                    email,
+                    password,
+                });
+                if (!retry.error) {
+                    data = retry.data;
+                    error = null;
+                }
+            }
+        }
 
         if (error) {
             logAuthEvent('login_failed', {
@@ -151,15 +274,18 @@ router.post('/login', async (req, res, next) => {
             userAgent: req.headers['user-agent'],
         });
 
+        const assignedRole = context.userRole || 'member';
+
         res.json({
             user: {
                 id: data.user.id,
                 email: data.user.email,
                 full_name: data.user.user_metadata?.full_name,
-                role: context.userRole || 'member',
+                role: assignedRole,
                 club_id: context.clubId,
             },
             session: data.session,
+            redirect: getRoleRedirect(assignedRole),
         });
     } catch (err) {
         next(err);

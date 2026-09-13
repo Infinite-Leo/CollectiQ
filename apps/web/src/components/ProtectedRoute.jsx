@@ -1,8 +1,22 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-export default function ProtectedRoute({ children }) {
-    const { isAuthenticated, loading } = useAuth();
+export function getRoleDefaultWorkspace(role) {
+    switch (role) {
+        case 'collector':
+            return '/collector';
+        case 'cashier':
+            return '/finance';
+        case 'secretary':
+            return '/dashboard';
+        case 'president':
+        default:
+            return '/dashboard';
+    }
+}
+
+export default function ProtectedRoute({ children, allowedRoles }) {
+    const { isAuthenticated, user, loading } = useAuth();
     const location = useLocation();
 
     if (loading) {
@@ -28,6 +42,14 @@ export default function ProtectedRoute({ children }) {
 
     if (!isAuthenticated) {
         return <Navigate to="/login" state={{ from: location }} replace />;
+    }
+
+    const currentRole = user?.app_metadata?.role || 'president';
+
+    if (allowedRoles && allowedRoles.length > 0 && !allowedRoles.includes(currentRole)) {
+        // Redirect unauthorized user to their role's dedicated workspace
+        const targetWorkspace = getRoleDefaultWorkspace(currentRole);
+        return <Navigate to={targetWorkspace} replace />;
     }
 
     return children;
