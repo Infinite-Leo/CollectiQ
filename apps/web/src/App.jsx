@@ -4,6 +4,7 @@ import { AppDataProvider } from './context/AppDataContext';
 import { ThemeProvider } from './context/ThemeContext';
 import ProtectedRoute, { getRoleDefaultWorkspace } from './components/ProtectedRoute';
 import Layout from './layouts/Layout';
+import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
 import Donations from './pages/Donations';
 import DonationEntry from './pages/DonationEntry';
@@ -64,8 +65,8 @@ export default function App() {
             <AuthProvider>
                 <AppDataProvider>
                     <Routes>
-                        {/* Public routes — Login is the direct landing experience */}
-                        <Route path="/" element={<RootRoute />} />
+                        {/* Public routes */}
+                        <Route path="/" element={<LandingPage />} />
                         <Route path="login" element={<Login />} />
                         <Route path="signup" element={<Signup />} />
 
